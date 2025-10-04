@@ -13,7 +13,7 @@ config_version=5
 config/name="Autobot Murderhell"
 config/description="A visual programming dungeon crawler where players program their android's AI"
 config/version="0.1.0"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/game_scene.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://icon.svg"
 
