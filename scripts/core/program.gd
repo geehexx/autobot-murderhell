@@ -63,9 +63,9 @@ func get_total_cpu_cost() -> int:
 
 
 ## Validates the entire program for basic errors.
-## Returns a tuple: [is_valid: bool, errors: Array[String]]
+## Returns a tuple: [is_valid: bool, errors: Array]
 func validate() -> Dictionary:
-	var errors: Array[String] = []
+	var errors: Array = []
 	
 	if instructions.is_empty():
 		errors.append("Program has no instructions")
@@ -109,8 +109,8 @@ func get_description() -> String:
 
 
 ## Creates a deep copy of this program.
-func duplicate_program() -> Program:
-	var copy: Program = Program.new(program_name, max_memory_cells)
+func duplicate_program():
+	var copy = get_script().new(program_name, max_memory_cells)
 	for instruction in instructions:
 		copy.instructions.append(instruction.duplicate_instruction())
 	copy.variables = variables.duplicate(true)

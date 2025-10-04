@@ -50,7 +50,8 @@ func find_nearest_enemy(android, search_radius: float = 500.0):
 	var nearest_distance: float = search_radius
 	
 	for node in androids:
-		if not node is AndroidEntity:
+		# All nodes in 'androids' group should be AndroidEntity instances
+		if not node.has_method("load_program"):
 			continue
 		
 		var other = node
@@ -90,7 +91,8 @@ func get_enemies_in_radius(android, radius: float) -> Array:
 	var androids: Array[Node] = get_tree().get_nodes_in_group("androids")
 	
 	for node in androids:
-		if not node is AndroidEntity:
+		# All nodes in 'androids' group should be AndroidEntity instances
+		if not node.has_method("load_program"):
 			continue
 		
 		var other = node

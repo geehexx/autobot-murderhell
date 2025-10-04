@@ -71,7 +71,8 @@ func _find_enemies() -> void:
 	
 	var androids: Array[Node] = get_tree().get_nodes_in_group("androids")
 	for node in androids:
-		if node is AndroidEntity:
+		# All nodes in 'androids' group should be AndroidEntity instances
+		if node.has_method("load_program"):
 			var android = node
 			if android != player_android and android.faction == "enemy":
 				enemy_androids.append(android)

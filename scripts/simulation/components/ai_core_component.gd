@@ -27,8 +27,8 @@ var is_paused: bool = false
 var execution_state: Dictionary = {}
 
 ## References to systems (injected).
-var movement_system: MovementSystem = null
-var combat_system: CombatSystem = null
+var movement_system = null
+var combat_system = null
 
 
 func _ready() -> void:
@@ -145,7 +145,7 @@ func _execute_instruction(instruction) -> void:
 ## Jumps instruction pointer to a labeled position.
 func _jump_to_label(label: String) -> void:
 	for i in program.instructions.size():
-		var instr: Instruction = program.instructions[i]
+		var instr = program.instructions[i]
 		if instr.type == "LABEL" and instr.parameters.get("name", "") == label:
 			instruction_pointer = i
 			return

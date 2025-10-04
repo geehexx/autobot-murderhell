@@ -35,7 +35,8 @@ func _init(
 func is_valid() -> bool:
 	if type.is_empty():
 		return false
-	if cpu_cost < 1:
+	# Note: cpu_cost can be 0 for labels and no-cost operations
+	if cpu_cost < 0:
 		return false
 	return true
 
@@ -54,6 +55,6 @@ func _generate_id() -> String:
 
 
 ## Creates a deep copy of this instruction.
-func duplicate_instruction() -> Instruction:
-	var copy: Instruction = Instruction.new(type, cpu_cost, parameters, instruction_id)
+func duplicate_instruction():
+	var copy = get_script().new(type, cpu_cost, parameters, instruction_id)
 	return copy

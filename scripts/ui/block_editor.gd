@@ -69,7 +69,7 @@ func _populate_block_palette() -> void:
 		child.queue_free()
 	
 	# Get unlocked blocks
-	var unlocked_blocks: Array[String] = []
+	var unlocked_blocks: Array = []
 	if player_profile:
 		unlocked_blocks = player_profile.unlocked_blocks
 	else:

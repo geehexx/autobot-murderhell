@@ -18,7 +18,8 @@ func process_movement(delta: float) -> void:
 	var androids: Array[Node] = get_tree().get_nodes_in_group("androids")
 	
 	for node in androids:
-		if node is AndroidEntity:
+		# All nodes in 'androids' group should be AndroidEntity instances
+		if node.has_method("load_program"):
 			_process_android_movement(node, delta)
 
 

@@ -14,7 +14,7 @@ extends Resource
 @export var current_level: int = 1
 
 ## List of completed level IDs.
-@export var levels_completed: Array[int] = []
+@export var levels_completed: Array = []
 
 ## Resources (currency).
 var resources: Dictionary = {
@@ -23,10 +23,10 @@ var resources: Dictionary = {
 }
 
 ## Unlocked instruction blocks.
-var unlocked_blocks: Array[String] = []
+var unlocked_blocks: Array = []
 
 ## Unlocked chips/hardware.
-var unlocked_chips: Array[String] = []
+var unlocked_chips: Array = []
 
 ## Upgrade tree state (node_id -> purchased).
 var upgrade_tree_state: Dictionary = {}
