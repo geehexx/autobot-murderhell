@@ -1,12 +1,34 @@
-[gd_scene load_steps=5 format=3 uid="uid://c8kj3v5n9qwpa"]
+[gd_scene load_steps=6 format=3 uid="uid://c8kj3v5n9qwpa"]
 
 [ext_resource type="Script" path="res://scripts/game_controller.gd" id="1_game_controller"]
 [ext_resource type="PackedScene" uid="uid://cxk7ydq5n8bns" path="res://scenes/ui/block_editor.tscn" id="2_block_editor"]
 [ext_resource type="PackedScene" uid="uid://cr4vxs3j5n8pd" path="res://scenes/ui/debugger.tscn" id="3_debugger"]
 [ext_resource type="Script" path="res://scripts/simulation/simulation_manager.gd" id="4_simulation"]
 
+[sub_resource type="World2D" id="World2D_simulation"]
+
 [node name="GameScene" type="Node"]
 script = ExtResource("1_game_controller")
+
+[node name="SimulationViewport" type="SubViewportContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SimulationViewport"]
+handle_input_locally = false
+size = Vector2i(720, 1280)
+render_target_update_mode = 4
+world_2d = SubResource("World2D_simulation")
+
+[node name="Camera2D" type="Camera2D" parent="SimulationViewport/SubViewport"]
+position = Vector2(360, 320)
+
+[node name="SimulationManager" type="Node2D" parent="SimulationViewport/SubViewport"]
+script = ExtResource("4_simulation")
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 
@@ -29,6 +51,3 @@ layout_mode = 2
 
 [node name="Debugger" parent="UILayer/TabContainer/Analyze" instance=ExtResource("3_debugger")]
 layout_mode = 1
-
-[node name="SimulationManager" type="Node" parent="."]
-script = ExtResource("4_simulation")
