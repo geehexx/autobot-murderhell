@@ -64,7 +64,13 @@ func _create_player_android(program: Program) -> void:
 	player_android.android_name = "Player Android"
 	player_android.faction = "player"
 	player_android.position = Vector2(100, 100)
+	player_android.add_to_group("androids")
 	add_child(player_android)
+	
+	# Inject systems into AI core
+	if player_android.ai_core:
+		player_android.ai_core.movement_system = movement_system
+		player_android.ai_core.combat_system = combat_system
 	
 	# Load program
 	var success: bool = player_android.load_program(program)

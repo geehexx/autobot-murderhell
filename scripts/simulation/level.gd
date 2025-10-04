@@ -1,0 +1,149 @@
+## Level - represents a game level/dungeon.
+## Contains spawn points, enemies, objectives, and win/lose conditions.
+class_name Level
+extends Node2D
+
+
+## Level identification.
+@export var level_id: String = "level_1"
+@export var level_name: String = "Tutorial"
+
+## Spawn point for player android.
+@export var player_spawn_position: Vector2 = Vector2(100, 100)
+
+## Win/lose conditions.
+enum WinCondition {
+	DEFEAT_ALL_ENEMIES,  # Kill all enemies
+	REACH_EXIT,          # Reach the exit zone
+	SURVIVE_TIME         # Survive for X seconds
+}
+
+@export var win_condition: WinCondition = WinCondition.DEFEAT_ALL_ENEMIES
+@export var time_limit: float = 0.0  # 0 = no limit
+
+## Level state.
+var is_active: bool = false
+var elapsed_time: float = 0.0
+var player_android: AndroidEntity = null
+var enemy_androids: Array[AndroidEntity] = []
+
+
+func _ready() -> void:
+	add_to_group("levels")
+	print("[Level] '%s' initialized" % level_name)
+
+
+func _process(delta: float) -> void:
+	if not is_active:
+		return
+	
+	elapsed_time += delta
+	
+	# Check time limit
+	if time_limit > 0.0 and elapsed_time >= time_limit:
+		_trigger_lose_condition("Time limit exceeded")
+	
+	# Check win conditions
+	_check_win_conditions()
+
+
+## Starts the level.
+func start_level(p_player_android: AndroidEntity) -> void:
+	player_android = p_player_android
+	is_active = true
+	elapsed_time = 0.0
+	
+	# Position player at spawn
+	if player_android:
+		player_android.position = player_spawn_position
+	
+	# Find all enemy androids
+	_find_enemies()
+	
+	print("[Level] Started: %s (Enemies: %d)" % [level_name, enemy_androids.size()])
+
+
+## Finds all enemy androids in the level.
+func _find_enemies() -> void:
+	enemy_androids.clear()
+	
+	var androids: Array[Node] = get_tree().get_nodes_in_group("androids")
+	for node in androids:
+		if node is AndroidEntity:
+			var android: AndroidEntity = node as AndroidEntity
+			if android != player_android and android.faction == "enemy":
+				enemy_androids.append(android)
+
+
+## Checks if win conditions are met.
+func _check_win_conditions() -> void:
+	match win_condition:
+		WinCondition.DEFEAT_ALL_ENEMIES:
+			if _are_all_enemies_defeated():
+				_trigger_win_condition()
+		WinCondition.REACH_EXIT:
+			if _is_player_at_exit():
+				_trigger_win_condition()
+		WinCondition.SURVIVE_TIME:
+			if elapsed_time >= time_limit:
+				_trigger_win_condition()
+
+
+## Checks if all enemies are defeated.
+func _are_all_enemies_defeated() -> bool:
+	for enemy in enemy_androids:
+		if enemy and enemy.is_alive():
+			return false
+	return true
+
+
+## Checks if player reached the exit (placeholder).
+func _is_player_at_exit() -> bool:
+	# TODO: Implement exit zone detection
+	return false
+
+
+## Triggers win condition.
+func _trigger_win_condition() -> void:
+	if not is_active:
+		return
+	
+	is_active = false
+	print("[Level] Win condition met!")
+	
+	EventBus.run_ended.emit({
+		"success": true,
+		"level_id": level_id,
+		"time": elapsed_time,
+		"enemies_defeated": enemy_androids.size()
+	})
+
+
+## Triggers lose condition.
+func _trigger_lose_condition(reason: String) -> void:
+	if not is_active:
+		return
+	
+	is_active = false
+	print("[Level] Lose condition met: %s" % reason)
+	
+	EventBus.run_ended.emit({
+		"success": false,
+		"level_id": level_id,
+		"reason": reason,
+		"time": elapsed_time
+	})
+
+
+## Callback when player android is destroyed.
+func _on_player_destroyed() -> void:
+	_trigger_lose_condition("Player android destroyed")
+
+
+## Returns the number of living enemies.
+func get_living_enemy_count() -> int:
+	var count: int = 0
+	for enemy in enemy_androids:
+		if enemy and enemy.is_alive():
+			count += 1
+	return count

@@ -23,6 +23,10 @@ var is_paused: bool = false
 ## Current execution state (variables, memory).
 var execution_state: Dictionary = {}
 
+## References to systems (injected).
+var movement_system: MovementSystem = null
+var combat_system: CombatSystem = null
+
 
 func _ready() -> void:
 	# Connect to debug events
@@ -105,16 +109,29 @@ func execute_step() -> bool:
 	return true
 
 
-## Executes a single instruction (placeholder implementation).
+## Executes a single instruction.
+## Now connects to actual simulation systems.
 func _execute_instruction(instruction: Instruction) -> void:
+	var android: AndroidEntity = get_parent() as AndroidEntity
+	if not android:
+		return
+	
 	match instruction.type:
 		"MOVE":
-			print("  [AI] Execute: MOVE %s" % str(instruction.parameters))
+			_execute_move(android, instruction.parameters)
 		"ATTACK":
-			print("  [AI] Execute: ATTACK")
+			_execute_attack(android, instruction.parameters)
 		"GOTO":
 			var label: String = instruction.parameters.get("label", "")
 			_jump_to_label(label)
+		"CONDITION":
+			_execute_condition(android, instruction.parameters)
+		"READ_SENSOR":
+			_execute_read_sensor(android, instruction.parameters)
+		"WRITE_MEMORY":
+			_execute_write_memory(instruction.parameters)
+		"READ_MEMORY":
+			_execute_read_memory(instruction.parameters)
 		"LABEL":
 			# Labels are markers, no execution needed
 			pass
@@ -143,3 +160,121 @@ func _on_debug_pause_toggled(paused: bool) -> void:
 func _on_debug_step_requested() -> void:
 	if is_paused and is_executing:
 		execute_step()
+
+
+## Executes a MOVE instruction.
+func _execute_move(android: AndroidEntity, params: Dictionary) -> void:
+	var direction: String = params.get("direction", "forward")
+	var distance: float = params.get("distance", 50.0)
+	
+	if movement_system:
+		match direction:
+			"forward":
+				movement_system.move_forward(android, distance)
+			_:
+				print("  [AI] Unknown direction: %s" % direction)
+	else:
+		# Fallback: simple movement
+		android.position += Vector2(distance, 0)
+	
+	print("  [AI] MOVE %s (%f)" % [direction, distance])
+
+
+## Executes an ATTACK instruction.
+func _execute_attack(android: AndroidEntity, params: Dictionary) -> void:
+	if not combat_system:
+		print("  [AI] ATTACK (no combat system)")
+		return
+	
+	# Find nearest enemy
+	var target: AndroidEntity = combat_system.find_nearest_enemy(android)
+	if not target:
+		print("  [AI] ATTACK (no target found)")
+		return
+	
+	# Check if in range
+	if combat_system.is_in_attack_range(android, target):
+		combat_system.perform_attack(android, target)
+		print("  [AI] ATTACK %s" % target.android_name)
+	else:
+		print("  [AI] ATTACK (target out of range)")
+
+
+## Executes a CONDITION instruction.
+func _execute_condition(android: AndroidEntity, params: Dictionary) -> void:
+	var condition_type: String = params.get("condition_type", "IS_HEALTH_LOW")
+	var jump_if_true: String = params.get("jump_if_true", "")
+	var jump_if_false: String = params.get("jump_if_false", "")
+	
+	var result: bool = _evaluate_condition(condition_type, android)
+	print("  [AI] CONDITION %s = %s" % [condition_type, result])
+	
+	var target_label: String = jump_if_true if result else jump_if_false
+	if not target_label.is_empty():
+		_jump_to_label(target_label)
+
+
+## Evaluates a condition.
+func _evaluate_condition(condition_type: String, android: AndroidEntity) -> bool:
+	match condition_type:
+		"IS_HEALTH_LOW":
+			return android.get_health_percentage() < 0.25
+		"IS_HEALTH_HIGH":
+			return android.get_health_percentage() > 0.75
+		"IS_ENEMY_NEAR":
+			if combat_system:
+				var enemy: AndroidEntity = combat_system.find_nearest_enemy(android, 200.0)
+				return enemy != null
+			return false
+		"TRUE":
+			return true
+		"FALSE":
+			return false
+		_:
+			push_warning("[AICoreComponent] Unknown condition: %s" % condition_type)
+			return false
+
+
+## Executes a READ_SENSOR instruction.
+func _execute_read_sensor(android: AndroidEntity, params: Dictionary) -> void:
+	var sensor_type: String = params.get("sensor_type", "PROXIMITY")
+	var store_in: String = params.get("store_in", "temp")
+	
+	var value: int = 0
+	match sensor_type:
+		"PROXIMITY":
+			if combat_system:
+				var enemy: AndroidEntity = combat_system.find_nearest_enemy(android, 500.0)
+				if enemy:
+					value = int(android.position.distance_to(enemy.position))
+	
+	execution_state["variables"][store_in] = value
+	print("  [AI] READ_SENSOR %s -> %s = %d" % [sensor_type, store_in, value])
+
+
+## Executes a WRITE_MEMORY instruction.
+func _execute_write_memory(params: Dictionary) -> void:
+	var cell_index: int = params.get("cell_index", 0)
+	var value_source: String = params.get("value_source", "0")
+	
+	# Get value from variable or parse as literal
+	var value: int = 0
+	if execution_state["variables"].has(value_source):
+		value = execution_state["variables"][value_source]
+	else:
+		value = int(value_source) if value_source.is_valid_int() else 0
+	
+	if cell_index >= 0 and cell_index < execution_state["memory"].size():
+		execution_state["memory"][cell_index] = value
+		print("  [AI] WRITE_MEMORY [%d] <- %d" % [cell_index, value])
+
+
+## Executes a READ_MEMORY instruction.
+func _execute_read_memory(params: Dictionary) -> void:
+	var cell_index: int = params.get("cell_index", 0)
+	var store_in: String = params.get("store_in", "temp")
+	
+	if cell_index >= 0 and cell_index < execution_state["memory"].size():
+		var value: int = execution_state["memory"][cell_index]
+		execution_state["variables"][store_in] = value
+		print("  [AI] READ_MEMORY [%d] -> %s = %d" % [cell_index, store_in, value])
