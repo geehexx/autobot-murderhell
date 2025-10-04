@@ -3,12 +3,12 @@
 class_name CombatSystem
 extends Node
 
+# Preload required classes
+const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
 
-## Default attack damage.
+## Default values.
 const DEFAULT_DAMAGE: float = 10.0
-
-## Default attack range in pixels.
-const DEFAULT_RANGE: float = 50.0
+const DEFAULT_RANGE: float = 100.0
 
 
 func _ready() -> void:
@@ -17,7 +17,7 @@ func _ready() -> void:
 
 ## Performs an attack from one Android to another.
 ## Returns true if attack was successful.
-func perform_attack(attacker: AndroidEntity, target: AndroidEntity, damage: float = DEFAULT_DAMAGE) -> bool:
+func perform_attack(attacker, target, damage: float = DEFAULT_DAMAGE) -> bool:
 	if not attacker.is_alive():
 		print("[CombatSystem] Attacker is dead, cannot attack")
 		return false
@@ -44,17 +44,16 @@ func perform_attack(attacker: AndroidEntity, target: AndroidEntity, damage: floa
 
 
 ## Finds the nearest enemy Android to the given Android.
-## Returns null if no enemies found.
-func find_nearest_enemy(android: AndroidEntity, search_radius: float = 500.0) -> AndroidEntity:
+func find_nearest_enemy(android, search_radius: float = 500.0):
 	var androids: Array[Node] = get_tree().get_nodes_in_group("androids")
-	var nearest_enemy: AndroidEntity = null
+	var nearest_enemy = null
 	var nearest_distance: float = search_radius
 	
 	for node in androids:
 		if not node is AndroidEntity:
 			continue
 		
-		var other: AndroidEntity = node as AndroidEntity
+		var other = node
 		
 		# Skip self
 		if other == android:
@@ -63,7 +62,6 @@ func find_nearest_enemy(android: AndroidEntity, search_radius: float = 500.0) ->
 		# Skip same faction
 		if other.faction == android.faction:
 			continue
-		
 		# Skip dead enemies
 		if not other.is_alive():
 			continue
@@ -78,7 +76,7 @@ func find_nearest_enemy(android: AndroidEntity, search_radius: float = 500.0) ->
 
 
 ## Checks if target is in attack range.
-func is_in_attack_range(attacker: AndroidEntity, target: AndroidEntity, range: float = DEFAULT_RANGE) -> bool:
+func is_in_attack_range(attacker, target, range: float = DEFAULT_RANGE) -> bool:
 	if not target or not target.is_alive():
 		return false
 	
@@ -87,15 +85,15 @@ func is_in_attack_range(attacker: AndroidEntity, target: AndroidEntity, range: f
 
 
 ## Gets all enemies within a radius.
-func get_enemies_in_radius(android: AndroidEntity, radius: float) -> Array[AndroidEntity]:
-	var enemies: Array[AndroidEntity] = []
+func get_enemies_in_radius(android, radius: float) -> Array:
+	var enemies: Array = []
 	var androids: Array[Node] = get_tree().get_nodes_in_group("androids")
 	
 	for node in androids:
 		if not node is AndroidEntity:
 			continue
 		
-		var other: AndroidEntity = node as AndroidEntity
+		var other = node
 		
 		# Skip self and same faction
 		if other == android or other.faction == android.faction:

@@ -3,14 +3,15 @@
 class_name MovementSystem
 extends Node
 
+# Preload required classes
+const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
 
-## Movement speed in pixels per second.
+## Default movement speed.
 const DEFAULT_SPEED: float = 100.0
 
 
 func _ready() -> void:
-	print("[MovementSystem] Initialized")
-
+	print("[MovementSystem] initialized")
 
 ## Processes movement for all Androids in the "androids" group.
 func process_movement(delta: float) -> void:
@@ -22,14 +23,14 @@ func process_movement(delta: float) -> void:
 
 
 ## Processes movement for a single Android.
-func _process_android_movement(android: AndroidEntity, delta: float) -> void:
+func _process_android_movement(android, delta: float) -> void:
 	# Placeholder - in full implementation, this would read movement commands
 	# from the AI Core's execution state and apply velocity
 	pass
 
 
 ## Moves an Android in a direction.
-func move_android(android: AndroidEntity, direction: Vector2, speed: float = DEFAULT_SPEED) -> void:
+func move_android(android, direction: Vector2, speed: float = DEFAULT_SPEED) -> void:
 	if not android.is_alive():
 		return
 	
@@ -41,18 +42,18 @@ func move_android(android: AndroidEntity, direction: Vector2, speed: float = DEF
 
 
 ## Moves an Android forward relative to its rotation.
-func move_forward(android: AndroidEntity, distance: float = 1.0) -> void:
+func move_forward(android, distance: float = 1.0) -> void:
 	var direction: Vector2 = Vector2.RIGHT.rotated(android.rotation)
 	android.position += direction * distance
 
 
 ## Rotates an Android to face a target position.
-func face_target(android: AndroidEntity, target_position: Vector2) -> void:
+func face_target(android, target_position: Vector2) -> void:
 	var direction: Vector2 = target_position - android.position
 	android.rotation = direction.angle()
 
 
 ## Checks if movement is possible (no obstacles).
-func can_move_to(android: AndroidEntity, target_position: Vector2) -> bool:
+func can_move_to(android, target_position: Vector2) -> bool:
 	# Placeholder - would perform collision checks
 	return true

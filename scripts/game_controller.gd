@@ -2,6 +2,11 @@
 ## Manages transitions between Design, Deploy, Analyze, Iterate phases.
 extends Node
 
+# Preload required classes
+const AITranslationServiceScript = preload("res://scripts/services/ai_translation_service.gd")
+const PersistenceServiceScript = preload("res://scripts/services/persistence_service.gd")
+const PlayerProfileScript = preload("res://scripts/progression/player_profile.gd")
+const ProgramScript = preload("res://scripts/core/program.gd")
 
 ## Current game phase.
 enum Phase {
@@ -14,26 +19,26 @@ enum Phase {
 var current_phase: Phase = Phase.DESIGN
 
 ## Services.
-var translation_service: AITranslationService
-var persistence_service: PersistenceService
+var translation_service
+var persistence_service
 
 ## Player profile.
-var player_profile: PlayerProfile
+var player_profile
 
 
 func _ready() -> void:
 	print("[GameController] Initializing...")
 	
 	# Initialize services
-	translation_service = AITranslationService.new()
+	translation_service = AITranslationServiceScript.new()
 	add_child(translation_service)
 	
-	persistence_service = PersistenceService.new()
+	persistence_service = PersistenceServiceScript.new()
 	add_child(persistence_service)
 	
 	# Load player profile
 	var load_result: Dictionary = persistence_service.load_profile()
-	player_profile = PlayerProfile.new()
+	player_profile = PlayerProfileScript.new()
 	if load_result["success"]:
 		player_profile.from_dictionary(load_result["data"])
 	
@@ -55,7 +60,7 @@ func _setup_ui() -> void:
 
 
 ## Handles program translation request.
-func _on_translate_program_requested(program: Program) -> void:
+func _on_translate_program_requested(program) -> void:
 	print("[GameController] Translating program...")
 	var result: Dictionary = translation_service.translate_program(program)
 	

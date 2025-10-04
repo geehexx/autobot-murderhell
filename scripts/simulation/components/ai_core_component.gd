@@ -4,9 +4,12 @@
 class_name AICoreComponent
 extends Node
 
+# Preload required classes
+const ProgramScript = preload("res://scripts/core/program.gd")
+const InstructionScript = preload("res://scripts/core/instruction.gd")
 
 ## The Program this AI Core is currently executing.
-var program: Program = null
+var program = null
 
 ## Current instruction pointer (index into program.instructions).
 var instruction_pointer: int = 0
@@ -36,7 +39,7 @@ func _ready() -> void:
 
 ## Loads a Program into this AI Core.
 ## Validates that the program fits within CPU capacity.
-func load_program(p_program: Program) -> bool:
+func load_program(p_program) -> bool:
 	if not p_program:
 		push_error("[AICoreComponent] Cannot load null program")
 		return false
@@ -95,7 +98,7 @@ func execute_step() -> bool:
 		stop_execution()
 		return false
 	
-	var instruction: Instruction = program.instructions[instruction_pointer]
+	var instruction = program.instructions[instruction_pointer]
 	
 	# Emit debug event
 	EventBus.instruction_executed.emit(instruction_pointer, execution_state)
@@ -111,8 +114,8 @@ func execute_step() -> bool:
 
 ## Executes a single instruction.
 ## Now connects to actual simulation systems.
-func _execute_instruction(instruction: Instruction) -> void:
-	var android: AndroidEntity = get_parent() as AndroidEntity
+func _execute_instruction(instruction) -> void:
+	var android = get_parent()
 	if not android:
 		return
 	
@@ -163,7 +166,7 @@ func _on_debug_step_requested() -> void:
 
 
 ## Executes a MOVE instruction.
-func _execute_move(android: AndroidEntity, params: Dictionary) -> void:
+func _execute_move(android, params: Dictionary) -> void:
 	var direction: String = params.get("direction", "forward")
 	var distance: float = params.get("distance", 50.0)
 	
@@ -181,13 +184,13 @@ func _execute_move(android: AndroidEntity, params: Dictionary) -> void:
 
 
 ## Executes an ATTACK instruction.
-func _execute_attack(android: AndroidEntity, params: Dictionary) -> void:
+func _execute_attack(android, params: Dictionary) -> void:
 	if not combat_system:
 		print("  [AI] ATTACK (no combat system)")
 		return
 	
 	# Find nearest enemy
-	var target: AndroidEntity = combat_system.find_nearest_enemy(android)
+	var target = combat_system.find_nearest_enemy(android)
 	if not target:
 		print("  [AI] ATTACK (no target found)")
 		return
@@ -201,7 +204,7 @@ func _execute_attack(android: AndroidEntity, params: Dictionary) -> void:
 
 
 ## Executes a CONDITION instruction.
-func _execute_condition(android: AndroidEntity, params: Dictionary) -> void:
+func _execute_condition(android, params: Dictionary) -> void:
 	var condition_type: String = params.get("condition_type", "IS_HEALTH_LOW")
 	var jump_if_true: String = params.get("jump_if_true", "")
 	var jump_if_false: String = params.get("jump_if_false", "")
@@ -215,7 +218,7 @@ func _execute_condition(android: AndroidEntity, params: Dictionary) -> void:
 
 
 ## Evaluates a condition.
-func _evaluate_condition(condition_type: String, android: AndroidEntity) -> bool:
+func _evaluate_condition(condition_type: String, android) -> bool:
 	match condition_type:
 		"IS_HEALTH_LOW":
 			return android.get_health_percentage() < 0.25
@@ -223,7 +226,7 @@ func _evaluate_condition(condition_type: String, android: AndroidEntity) -> bool
 			return android.get_health_percentage() > 0.75
 		"IS_ENEMY_NEAR":
 			if combat_system:
-				var enemy: AndroidEntity = combat_system.find_nearest_enemy(android, 200.0)
+				var enemy = combat_system.find_nearest_enemy(android, 200.0)
 				return enemy != null
 			return false
 		"TRUE":
@@ -236,7 +239,7 @@ func _evaluate_condition(condition_type: String, android: AndroidEntity) -> bool
 
 
 ## Executes a READ_SENSOR instruction.
-func _execute_read_sensor(android: AndroidEntity, params: Dictionary) -> void:
+func _execute_read_sensor(android, params: Dictionary) -> void:
 	var sensor_type: String = params.get("sensor_type", "PROXIMITY")
 	var store_in: String = params.get("store_in", "temp")
 	
@@ -244,7 +247,7 @@ func _execute_read_sensor(android: AndroidEntity, params: Dictionary) -> void:
 	match sensor_type:
 		"PROXIMITY":
 			if combat_system:
-				var enemy: AndroidEntity = combat_system.find_nearest_enemy(android, 500.0)
+				var enemy = combat_system.find_nearest_enemy(android, 500.0)
 				if enemy:
 					value = int(android.position.distance_to(enemy.position))
 	

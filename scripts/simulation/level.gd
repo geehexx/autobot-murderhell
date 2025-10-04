@@ -3,6 +3,8 @@
 class_name Level
 extends Node2D
 
+# Preload required classes
+const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
 
 ## Level identification.
 @export var level_id: String = "level_1"
@@ -24,8 +26,8 @@ enum WinCondition {
 ## Level state.
 var is_active: bool = false
 var elapsed_time: float = 0.0
-var player_android: AndroidEntity = null
-var enemy_androids: Array[AndroidEntity] = []
+var player_android = null
+var enemy_androids: Array = []
 
 
 func _ready() -> void:
@@ -48,7 +50,7 @@ func _process(delta: float) -> void:
 
 
 ## Starts the level.
-func start_level(p_player_android: AndroidEntity) -> void:
+func start_level(p_player_android) -> void:
 	player_android = p_player_android
 	is_active = true
 	elapsed_time = 0.0
@@ -70,7 +72,7 @@ func _find_enemies() -> void:
 	var androids: Array[Node] = get_tree().get_nodes_in_group("androids")
 	for node in androids:
 		if node is AndroidEntity:
-			var android: AndroidEntity = node as AndroidEntity
+			var android = node
 			if android != player_android and android.faction == "enemy":
 				enemy_androids.append(android)
 

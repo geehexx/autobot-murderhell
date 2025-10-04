@@ -1,14 +1,18 @@
 ## Block Editor UI - visual programming interface.
 ## Mobile-first design following ADR-002.
-## This is the primary interface for the "Design" phase of the core loop.
+## This is the primary interface for creating AI Programs.
 extends Control
 
+# Preload required classes
+const ProgramScript = preload("res://scripts/core/program.gd")
+const InstructionScript = preload("res://scripts/core/instruction.gd")
+const PlayerProfileScript = preload("res://scripts/progression/player_profile.gd")
 
-## Reference to the current Program being edited.
-var current_program: Program = null
+## Reference to current Program.
+var current_program = null
 
-## Reference to the player profile for unlocked blocks.
-var player_profile: PlayerProfile = null
+## Reference to player profile.
+var player_profile = null
 
 ## References to UI elements.
 @onready var block_list: VBoxContainer = %BlockList
@@ -37,12 +41,12 @@ func _ready() -> void:
 
 ## Creates a new empty program.
 func create_new_program() -> void:
-	current_program = Program.new("New Program")
+	current_program = ProgramScript.new("New Program")
 	_refresh_ui()
 
 
 ## Loads a program into the editor.
-func load_program(program: Program) -> void:
+func load_program(program) -> void:
 	if not program:
 		push_error("[BlockEditor] Cannot load null program")
 		return
@@ -53,7 +57,7 @@ func load_program(program: Program) -> void:
 
 
 ## Sets the player profile to determine available blocks.
-func set_player_profile(profile: PlayerProfile) -> void:
+func set_player_profile(profile) -> void:
 	player_profile = profile
 	_populate_block_palette()
 
@@ -98,7 +102,7 @@ func _update_program_display() -> void:
 	
 	# Display each instruction
 	for i in current_program.instructions.size():
-		var instruction: Instruction = current_program.instructions[i]
+		var instruction = current_program.instructions[i]
 		var instruction_ui: Control = _create_instruction_ui(instruction, i)
 		program_list.add_child(instruction_ui)
 	
@@ -112,7 +116,7 @@ func _update_program_display() -> void:
 
 
 ## Creates a UI element for an instruction.
-func _create_instruction_ui(instruction: Instruction, index: int) -> Control:
+func _create_instruction_ui(instruction, index: int) -> Control:
 	var panel: PanelContainer = PanelContainer.new()
 	var hbox: HBoxContainer = HBoxContainer.new()
 	panel.add_child(hbox)
@@ -169,39 +173,39 @@ func _on_add_block_pressed(block_type: String) -> void:
 		return
 	
 	# Create instruction based on block type
-	var instruction: Instruction = _create_instruction_from_type(block_type)
+	var instruction = _create_instruction_from_type(block_type)
 	current_program.add_instruction(instruction)
 	
 	_refresh_ui()
 	EventBus.program_edited.emit(current_program)
 	
-	print("[BlockEditor] Added instruction: %s" % block_type)
 
 
 ## Creates an instruction from a block type.
-func _create_instruction_from_type(block_type: String) -> Instruction:
+func _create_instruction_from_type(block_type: String):
 	match block_type:
-		"MOVE":
-			return Instruction.new("MOVE", 2, {"direction": "forward", "distance": 1.0})
-		"ATTACK":
-			return Instruction.new("ATTACK", 3, {})
-		"GOTO":
-			return Instruction.new("GOTO", 1, {"label": "START"})
-		"LABEL":
-			return Instruction.new("LABEL", 0, {"name": "START"})
-		"CONDITION":
-			return Instruction.new("CONDITION", 2, {
-				"condition_type": "IS_HEALTH_LOW",
-				"jump_if_true": "",
-				"jump_if_false": ""
-			})
-		_:
-			return Instruction.new(block_type, 1, {})
+			"MOVE":
+				return InstructionScript.new("MOVE", 2, {"direction": "forward", "distance": 1.0})
+			"ATTACK":
+				return InstructionScript.new("ATTACK", 3, {})
+			"GOTO":
+				return InstructionScript.new("GOTO", 1, {"label": "START"})
+			"LABEL":
+				return InstructionScript.new("LABEL", 0, {"name": "START"})
+			"CONDITION":
+				return InstructionScript.new("CONDITION", 2, {
+					"condition_type": "IS_HEALTH_LOW",
+					"jump_if_true": "",
+					"jump_if_false": ""
+				})
+			_:
+				return InstructionScript.new(block_type, 1, {})
 
 
 ## Callback when delete instruction button is pressed.
 func _on_delete_instruction_pressed(index: int) -> void:
 	if not current_program:
+		push_error("[BlockEditor] Cannot delete instruction - program is null")
 		return
 	
 	current_program.remove_instruction(index)
@@ -238,6 +242,6 @@ func _on_deploy_button_pressed() -> void:
 
 
 ## Callback when program is edited externally.
-func _on_program_edited(program: Program) -> void:
+func _on_program_edited(program) -> void:
 	if program == current_program:
 		_refresh_ui()

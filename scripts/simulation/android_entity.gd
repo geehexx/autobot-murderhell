@@ -4,12 +4,15 @@
 class_name AndroidEntity
 extends Node2D
 
+# Preload required classes
+const HealthComponentScript = preload("res://scripts/simulation/components/health_component.gd")
+const AICoreComponentScript = preload("res://scripts/simulation/components/ai_core_component.gd")
 
 ## Reference to the HealthComponent.
-@onready var health_component: HealthComponent = $HealthComponent
+@onready var health_component = $HealthComponent
 
 ## Reference to the AICoreComponent.
-@onready var ai_core: AICoreComponent = $AICoreComponent
+@onready var ai_core = $AICoreComponent
 
 ## The Android's display name.
 @export var android_name: String = "Android"
@@ -21,13 +24,13 @@ extends Node2D
 func _ready() -> void:
 	# Ensure components exist
 	if not has_node("HealthComponent"):
-		var health: HealthComponent = HealthComponent.new()
+		var health = HealthComponentScript.new()
 		health.name = "HealthComponent"
 		add_child(health)
 		health_component = health
 	
 	if not has_node("AICoreComponent"):
-		var ai: AICoreComponent = AICoreComponent.new()
+		var ai = AICoreComponentScript.new()
 		ai.name = "AICoreComponent"
 		add_child(ai)
 		ai_core = ai
@@ -42,7 +45,7 @@ func _process(_delta: float) -> void:
 
 
 ## Loads an AI Program into this Android.
-func load_program(program: Program) -> bool:
+func load_program(program) -> bool:
 	if not ai_core:
 		push_error("[AndroidEntity] No AI Core component")
 		return false

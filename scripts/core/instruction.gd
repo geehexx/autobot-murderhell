@@ -41,7 +41,7 @@ func is_valid() -> bool:
 
 
 ## Returns a human-readable string representation of this instruction.
-func to_string() -> String:
+func get_description() -> String:
 	var param_str: String = ""
 	if not parameters.is_empty():
 		param_str = " " + str(parameters)

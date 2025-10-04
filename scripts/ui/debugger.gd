@@ -2,9 +2,12 @@
 ## Mobile-first design for the "Analyze" phase of the core loop.
 extends Control
 
+# Preload required classes
+const ProgramScript = preload("res://scripts/core/program.gd")
+const InstructionScript = preload("res://scripts/core/instruction.gd")
 
 ## Current program being debugged.
-var current_program: Program = null
+var current_program = null
 
 ## Current instruction pointer.
 var current_instruction_index: int = 0
@@ -38,7 +41,7 @@ func _ready() -> void:
 
 
 ## Loads a program into the debugger.
-func load_program(program: Program) -> void:
+func load_program(program) -> void:
 	if not program:
 		return
 	
@@ -59,7 +62,7 @@ func _refresh_instruction_display() -> void:
 	
 	# Display each instruction
 	for i in current_program.instructions.size():
-		var instruction: Instruction = current_program.instructions[i]
+		var instruction = current_program.instructions[i]
 		var panel: PanelContainer = PanelContainer.new()
 		var label: Label = Label.new()
 		
@@ -119,7 +122,7 @@ func _on_instruction_executed(instruction_index: int, state: Dictionary) -> void
 
 
 ## Callback when a run starts.
-func _on_run_started(level_id: String, program: Program) -> void:
+func _on_run_started(level_id: String, program) -> void:
 	load_program(program)
 	is_paused = false
 	play_pause_button.text = "Pause"

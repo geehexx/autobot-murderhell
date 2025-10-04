@@ -9,7 +9,7 @@ extends Resource
 @export var program_name: String = "Untitled Program"
 
 ## Ordered list of Instructions that make up this program.
-@export var instructions: Array[Instruction] = []
+@export var instructions: Array = []
 
 ## Variables defined in this program (name -> initial value).
 ## In the MVP, this might be simple integers or references.
@@ -34,19 +34,19 @@ func _init(
 
 
 ## Adds an instruction to the end of the program.
-func add_instruction(instruction: Instruction) -> void:
+func add_instruction(instruction) -> void:
 	if instruction and instruction.is_valid():
 		instructions.append(instruction)
 
 
 ## Inserts an instruction at a specific index.
-func insert_instruction(instruction: Instruction, index: int) -> void:
+func insert_instruction(instruction, index: int) -> void:
 	if instruction and instruction.is_valid():
 		if index >= 0 and index <= instructions.size():
 			instructions.insert(index, instruction)
 
 
-## Removes an instruction at a specific index.
+## Removes an instruction at a given index.
 func remove_instruction(index: int) -> bool:
 	if index >= 0 and index < instructions.size():
 		instructions.remove_at(index)
@@ -71,7 +71,7 @@ func validate() -> Dictionary:
 		errors.append("Program has no instructions")
 	
 	for i in instructions.size():
-		var instruction: Instruction = instructions[i]
+		var instruction = instructions[i]
 		if not instruction.is_valid():
 			errors.append("Instruction at index %d is invalid" % i)
 	
@@ -97,14 +97,14 @@ func _has_label(label: String) -> bool:
 
 
 ## Returns a string representation of the entire program.
-func to_string() -> String:
+func get_description() -> String:
 	var lines: PackedStringArray = []
 	lines.append("=== %s ===" % program_name)
 	lines.append("CPU Cost: %d" % get_total_cpu_cost())
 	lines.append("Memory Cells: %d" % max_memory_cells)
 	lines.append("Instructions:")
 	for i in instructions.size():
-		lines.append("  %d: %s" % [i, instructions[i].to_string()])
+		lines.append("  %d: %s" % [i, instructions[i].get_description()])
 	return "\n".join(lines)
 
 

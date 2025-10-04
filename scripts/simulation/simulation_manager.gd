@@ -2,16 +2,22 @@
 ## Coordinates systems and entities in the Simulation Context.
 extends Node
 
+# Preload required classes
+const MovementSystemScript = preload("res://scripts/simulation/systems/movement_system.gd")
+const CombatSystemScript = preload("res://scripts/simulation/systems/combat_system.gd")
+const LevelScript = preload("res://scripts/simulation/level.gd")
+const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
+const ProgramScript = preload("res://scripts/core/program.gd")
 
 ## References to systems.
-var movement_system: MovementSystem
-var combat_system: CombatSystem
+var movement_system
+var combat_system
 
 ## Current level.
-var current_level: Level = null
+var current_level = null
 
 ## Player android.
-var player_android: AndroidEntity = null
+var player_android = null
 
 ## Is simulation running?
 var is_running: bool = false
@@ -19,10 +25,10 @@ var is_running: bool = false
 
 func _ready() -> void:
 	# Initialize systems
-	movement_system = MovementSystem.new()
+	movement_system = MovementSystemScript.new()
 	add_child(movement_system)
 	
-	combat_system = CombatSystem.new()
+	combat_system = CombatSystemScript.new()
 	add_child(combat_system)
 	
 	# Connect to EventBus
@@ -40,7 +46,7 @@ func _process(delta: float) -> void:
 
 
 ## Starts a new run.
-func _on_run_started(level_id: String, program: Program) -> void:
+func _on_run_started(level_id: String, program) -> void:
 	print("[SimulationManager] Starting run on level: %s" % level_id)
 	
 	# Load level
@@ -81,15 +87,15 @@ func _load_level(level_id: String) -> void:
 		push_error("[SimulationManager] Failed to load level: %s" % level_path)
 		return
 	
-	current_level = level_scene.instantiate() as Level
+	current_level = level_scene.instantiate()
 	add_child(current_level)
 	
 	print("[SimulationManager] Loaded level: %s" % level_id)
 
 
 ## Creates the player android with the given program.
-func _create_player_android(program: Program) -> void:
-	player_android = AndroidEntity.new()
+func _create_player_android(program) -> void:
+	player_android = AndroidEntityScript.new()
 	player_android.android_name = "Player Android"
 	player_android.faction = "player"
 	player_android.position = Vector2(100, 100)
@@ -130,7 +136,7 @@ func stop_run() -> void:
 
 
 ## Adds visual representation to an android.
-func _add_android_visual(android: AndroidEntity, color: Color) -> void:
+func _add_android_visual(android, color: Color) -> void:
 	var visuals: Node2D = Node2D.new()
 	visuals.name = "Visuals"
 	
