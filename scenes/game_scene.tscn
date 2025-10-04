@@ -1,0 +1,34 @@
+[gd_scene load_steps=5 format=3 uid="uid://c8kj3v5n9qwpa"]
+
+[ext_resource type="Script" path="res://scripts/game_controller.gd" id="1_game_controller"]
+[ext_resource type="PackedScene" uid="uid://cxk7ydq5n8bns" path="res://scenes/ui/block_editor.tscn" id="2_block_editor"]
+[ext_resource type="PackedScene" uid="uid://cr4vxs3j5n8pd" path="res://scenes/ui/debugger.tscn" id="3_debugger"]
+[ext_resource type="Script" path="res://scripts/simulation/simulation_manager.gd" id="4_simulation"]
+
+[node name="GameScene" type="Node"]
+script = ExtResource("1_game_controller")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="TabContainer" type="TabContainer" parent="UILayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Design" type="Control" parent="UILayer/TabContainer"]
+layout_mode = 2
+
+[node name="BlockEditor" parent="UILayer/TabContainer/Design" instance=ExtResource("2_block_editor")]
+layout_mode = 1
+
+[node name="Analyze" type="Control" parent="UILayer/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="Debugger" parent="UILayer/TabContainer/Analyze" instance=ExtResource("3_debugger")]
+layout_mode = 1
+
+[node name="SimulationManager" type="Node" parent="."]
+script = ExtResource("4_simulation")

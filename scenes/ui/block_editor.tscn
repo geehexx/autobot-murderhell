@@ -1,0 +1,105 @@
+[gd_scene load_steps=2 format=3 uid="uid://cxk7ydq5n8bns"]
+
+[ext_resource type="Script" path="res://scripts/ui/block_editor.gd" id="1_block_editor"]
+
+[node name="BlockEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_block_editor")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/HeaderPanel"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Block Editor"
+vertical_alignment = 1
+
+[node name="CPULabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer"]
+layout_mode = 2
+text = "CPU: 0/10"
+
+[node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer"]
+custom_minimum_size = Vector2(80, 48)
+layout_mode = 2
+text = "Save"
+
+[node name="DeployButton" type="Button" parent="MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer"]
+custom_minimum_size = Vector2(80, 48)
+layout_mode = 2
+text = "Deploy"
+
+[node name="MainHSplit" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BlockPalette" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainHSplit"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainHSplit/BlockPalette"]
+layout_mode = 2
+
+[node name="PaletteLabel" type="Label" parent="MarginContainer/VBoxContainer/MainHSplit/BlockPalette/VBoxContainer"]
+layout_mode = 2
+text = "Available Blocks"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainHSplit/BlockPalette/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BlockList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainHSplit/BlockPalette/VBoxContainer/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="WorkspacePanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainHSplit"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainHSplit/WorkspacePanel"]
+layout_mode = 2
+
+[node name="WorkspaceLabel" type="Label" parent="MarginContainer/VBoxContainer/MainHSplit/WorkspacePanel/VBoxContainer"]
+layout_mode = 2
+text = "Program Workspace"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainHSplit/WorkspacePanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ProgramList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainHSplit/WorkspacePanel/VBoxContainer/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
