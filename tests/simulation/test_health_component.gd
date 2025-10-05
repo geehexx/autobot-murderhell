@@ -2,8 +2,11 @@
 extends GdUnitTestSuite
 
 
+const HealthComponentScript = preload("res://src/simulation/components/health_component.gd")
+
+
 func test_health_component_initialization() -> void:
-	var health: HealthComponent = HealthComponent.new()
+	var health = HealthComponentScript.new()
 	
 	# Default values before _ready()
 	assert_float(health.max_health).is_equal(100.0)
@@ -12,7 +15,7 @@ func test_health_component_initialization() -> void:
 
 
 func test_health_initialized_to_max_on_ready() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	add_child(health)
 	
 	await await_idle_frame()
@@ -21,7 +24,7 @@ func test_health_initialized_to_max_on_ready() -> void:
 
 
 func test_take_damage_reduces_health() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	add_child(health)
 	await await_idle_frame()
 	
@@ -32,7 +35,7 @@ func test_take_damage_reduces_health() -> void:
 
 
 func test_take_damage_with_armor_reduces_damage() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	health.armor = 50.0  # 50% damage reduction
 	add_child(health)
 	await await_idle_frame()
@@ -45,7 +48,7 @@ func test_take_damage_with_armor_reduces_damage() -> void:
 
 
 func test_take_damage_armor_caps_at_75_percent() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	health.armor = 100.0  # Would be 100% but capped at 75%
 	add_child(health)
 	await await_idle_frame()
@@ -58,7 +61,7 @@ func test_take_damage_armor_caps_at_75_percent() -> void:
 
 
 func test_take_damage_to_zero_marks_not_alive() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	add_child(health)
 	await await_idle_frame()
 	
@@ -69,7 +72,7 @@ func test_take_damage_to_zero_marks_not_alive() -> void:
 
 
 func test_take_damage_when_dead_does_nothing() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	add_child(health)
 	await await_idle_frame()
 	
@@ -81,7 +84,7 @@ func test_take_damage_when_dead_does_nothing() -> void:
 
 
 func test_heal_increases_health() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	add_child(health)
 	await await_idle_frame()
 	
@@ -92,7 +95,7 @@ func test_heal_increases_health() -> void:
 
 
 func test_heal_cannot_exceed_max_health() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	add_child(health)
 	await await_idle_frame()
 	
@@ -103,7 +106,7 @@ func test_heal_cannot_exceed_max_health() -> void:
 
 
 func test_heal_when_dead_does_nothing() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	add_child(health)
 	await await_idle_frame()
 	
@@ -115,7 +118,7 @@ func test_heal_when_dead_does_nothing() -> void:
 
 
 func test_get_health_percentage() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	health.max_health = 100.0
 	add_child(health)
 	await await_idle_frame()
@@ -126,7 +129,7 @@ func test_get_health_percentage() -> void:
 
 
 func test_is_health_low_default_threshold() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	add_child(health)
 	await await_idle_frame()
 	
@@ -136,7 +139,7 @@ func test_is_health_low_default_threshold() -> void:
 
 
 func test_is_health_low_custom_threshold() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	add_child(health)
 	await await_idle_frame()
 	
@@ -147,7 +150,7 @@ func test_is_health_low_custom_threshold() -> void:
 
 
 func test_reset_restores_to_max() -> void:
-	var health: HealthComponent = auto_free(HealthComponent.new())
+	var health = auto_free(HealthComponentScript.new())
 	add_child(health)
 	await await_idle_frame()
 	
