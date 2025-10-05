@@ -73,37 +73,25 @@ The smoke test (`smoke_test.gd`) validates core functionality:
 - CPU cost calculation
 - Program duplication
 
-### ⚠️ Tests Requiring Updates
+### ✅ Tests Updated for Preload Pattern
 
-Test files in `tests/` directory use the old `class_name` pattern and need refactoring to use the `preload` pattern per ADR-002:
-
-**Files to update:**
+All legacy suites have been refactored to use the ADR-002 preload pattern. Key updates include:
 - `tests/core/test_program.gd`
 - `tests/core/test_instruction.gd`
 - `tests/services/test_ai_translation_service.gd`
 - `tests/services/test_persistence_service.gd`
 - `tests/progression/test_player_profile.gd`
 - `tests/simulation/test_health_component.gd`
-- `tests/ui/test_game_flow.gd`
 
-**Required changes:**
-```gdscript
-# OLD (will fail)
-extends GdUnitTestSuite
+Remaining suites (e.g., `tests/ui/test_game_flow.gd`, `tests/simulation/test_level.gd`) already followed the required pattern.
 
-func test_example() -> void:
-    var program: Program = Program.new()
-    var instruction: Instruction = Instruction.new("MOVE", 1)
+> **Next action:** Install GdUnit4 and execute the suites below to confirm parity after the refactor.
 
-# NEW (correct pattern)
-extends GdUnitTestSuite
-
-const ProgramScript = preload("res://src/core/program.gd")
-const InstructionScript = preload("res://src/core/instruction.gd")
-
-func test_example() -> void:
-    var program = ProgramScript.new()
-    var instruction = InstructionScript.new("MOVE", 1)
+```bash
+# After installing GdUnit4, run targeted suites
+godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add tests/core/test_program.gd
+godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add tests/services/test_ai_translation_service.gd
+godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add tests/simulation/test_health_component.gd
 ```
 
 ## Test Coverage Goals
