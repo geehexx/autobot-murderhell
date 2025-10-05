@@ -1,6 +1,5 @@
-## Represents an AI Program - a sequence of Instructions.
-## This is the aggregate root for the Programming Context.
-## The player creates this via the Block Editor.
+## Represents an AI Program - a sequence of low-level Instructions.
+## Updated per ADR-003 to include CPU budgeting and blackboard defaults.
 class_name Program
 extends Resource
 
@@ -11,26 +10,19 @@ extends Resource
 ## Ordered list of Instructions that make up this program.
 @export var instructions: Array = []
 
-## Variables defined in this program (name -> initial value).
-## In the MVP, this might be simple integers or references.
-@export var variables: Dictionary = {}
+## Initial blackboard values (variable -> value) restored on load.
+@export var blackboard_defaults: Dictionary = {}
 
-## Memory cells allocated for this program (index -> value).
-## Analogous to floor tiles in Human Resource Machine.
-@export var memory_cells: Array = []
-
-## Maximum number of memory cells this program can use.
-@export var max_memory_cells: int = 4
+## Maximum CPU cycles the AI Core may consume per frame.
+@export var cpu_budget_per_tick: int = 100
 
 
 func _init(
 	p_name: String = "Untitled Program",
-	p_max_memory: int = 4
+	p_cpu_budget_per_tick: int = 100
 ) -> void:
 	program_name = p_name
-	max_memory_cells = p_max_memory
-	memory_cells.resize(max_memory_cells)
-	memory_cells.fill(0)
+	cpu_budget_per_tick = p_cpu_budget_per_tick
 
 
 ## Adds an instruction to the end of the program.
@@ -52,36 +44,44 @@ func remove_instruction(index: int) -> bool:
 		instructions.remove_at(index)
 		return true
 	return false
-
-
 ## Gets the total CPU cost of this program.
 func get_total_cpu_cost() -> int:
 	var total: int = 0
 	for instruction in instructions:
-		total += instruction.cpu_cost
+		if instruction:
+			total += instruction.cpu_cost
 	return total
 
 
 ## Validates the entire program for basic errors.
-## Returns a tuple: [is_valid: bool, errors: Array]
+## Returns a dictionary: { "is_valid": bool, "errors": Array }
 func validate() -> Dictionary:
 	var errors: Array = []
-	
+
 	if instructions.is_empty():
 		errors.append("Program has no instructions")
-	
-	for i in instructions.size():
-		var instruction = instructions[i]
-		if not instruction.is_valid():
-			errors.append("Instruction at index %d is invalid" % i)
-	
-	# Check for disconnected GOTO targets (basic validation)
-	for instruction in instructions:
-		if instruction.type == "GOTO":
-			var target_label: String = instruction.parameters.get("label", "")
-			if not _has_label(target_label):
-				errors.append("GOTO references non-existent label: %s" % target_label)
-	
+	else:
+		var label_map := _collect_labels(errors)
+		for i in instructions.size():
+			var instruction = instructions[i]
+			if not instruction:
+				errors.append("Instruction at index %d is null" % i)
+				continue
+			if not instruction.is_valid():
+				errors.append("Instruction at index %d has invalid definition" % i)
+				continue
+			errors += _validate_instruction_parameters(instruction, i)
+			if instruction.type == "JUMP_IF":
+				var target_label: String = instruction.parameters.get("target_label", "")
+				if target_label.is_empty():
+					errors.append("JUMP_IF at index %d missing target_label" % i)
+				elif not label_map.has(target_label):
+					errors.append("JUMP_IF at index %d references unknown label '%s'" % [i, target_label])
+			if instruction.type == "LABEL":
+				var label_name: String = instruction.parameters.get("name", "")
+				if label_name.is_empty():
+					errors.append("LABEL at index %d missing name" % i)
+
 	return {
 		"is_valid": errors.is_empty(),
 		"errors": errors
@@ -89,11 +89,35 @@ func validate() -> Dictionary:
 
 
 ## Checks if a label exists in the program.
-func _has_label(label: String) -> bool:
-	for instruction in instructions:
-		if instruction.type == "LABEL" and instruction.parameters.get("name", "") == label:
-			return true
-	return false
+func _collect_labels(errors: Array) -> Dictionary:
+	var label_map: Dictionary = {}
+	for i in instructions.size():
+		var instruction = instructions[i]
+		if not instruction or instruction.type != "LABEL":
+			continue
+		var label_name: String = instruction.parameters.get("name", "")
+		if label_name.is_empty():
+			errors.append("LABEL at index %d missing name" % i)
+		elif label_map.has(label_name):
+			errors.append("Duplicate LABEL name '%s' at index %d" % [label_name, i])
+		else:
+			label_map[label_name] = i
+	return label_map
+
+
+func _validate_instruction_parameters(instruction, index: int) -> Array:
+	var errors: Array = []
+	var definition: Dictionary = instruction.get_definition()
+	if definition.is_empty():
+		errors.append("Instruction at index %d has unknown type '%s'" % [index, instruction.type])
+		return errors
+
+	var required_params: Array = definition.get("required_params", [])
+	for param_name in required_params:
+		if not instruction.parameters.has(param_name):
+			errors.append("Instruction '%s' at index %d missing required parameter '%s'" % [instruction.type, index, param_name])
+
+	return errors
 
 
 ## Returns a string representation of the entire program.
@@ -101,18 +125,20 @@ func get_description() -> String:
 	var lines: PackedStringArray = []
 	lines.append("=== %s ===" % program_name)
 	lines.append("CPU Cost: %d" % get_total_cpu_cost())
-	lines.append("Memory Cells: %d" % max_memory_cells)
+	lines.append("CPU Budget/Tick: %d" % cpu_budget_per_tick)
 	lines.append("Instructions:")
 	for i in instructions.size():
-		lines.append("  %d: %s" % [i, instructions[i].get_description()])
+		var instruction = instructions[i]
+		var description: String = instruction.get_description() if instruction else "<null>"
+		lines.append("  %d: %s" % [i, description])
 	return "\n".join(lines)
 
 
 ## Creates a deep copy of this program.
 func duplicate_program():
-	var copy = get_script().new(program_name, max_memory_cells)
+	var copy = get_script().new(program_name, cpu_budget_per_tick)
 	for instruction in instructions:
-		copy.instructions.append(instruction.duplicate_instruction())
-	copy.variables = variables.duplicate(true)
-	copy.memory_cells = memory_cells.duplicate(true)
+		if instruction:
+			copy.instructions.append(instruction.duplicate_instruction())
+	copy.blackboard_defaults = blackboard_defaults.duplicate(true)
 	return copy

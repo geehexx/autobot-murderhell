@@ -8,22 +8,20 @@ func test_program_creation_with_defaults() -> void:
 	
 	assert_str(program.program_name).is_equal("Untitled Program")
 	assert_array(program.instructions).is_empty()
-	assert_dict(program.variables).is_empty()
-	assert_int(program.max_memory_cells).is_equal(4)
-	assert_array(program.memory_cells).has_size(4)
+	assert_dict(program.blackboard_defaults).is_empty()
+	assert_int(program.cpu_budget_per_tick).is_equal(100)
 
 
 func test_program_creation_with_parameters() -> void:
-	var program: Program = Program.new("Test Program", 8)
+	var program: Program = Program.new("Test Program", 150)
 	
 	assert_str(program.program_name).is_equal("Test Program")
-	assert_int(program.max_memory_cells).is_equal(8)
-	assert_array(program.memory_cells).has_size(8)
+	assert_int(program.cpu_budget_per_tick).is_equal(150)
 
 
 func test_add_valid_instruction() -> void:
 	var program: Program = Program.new()
-	var instruction: Instruction = Instruction.new("MOVE", 1)
+	var instruction: Instruction = Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 10})
 	
 	program.add_instruction(instruction)
 	
@@ -33,7 +31,7 @@ func test_add_valid_instruction() -> void:
 
 func test_add_invalid_instruction_is_ignored() -> void:
 	var program: Program = Program.new()
-	var invalid_instruction: Instruction = Instruction.new("", 0)  # Invalid
+	var invalid_instruction: Instruction = Instruction.new("", 0)
 	
 	program.add_instruction(invalid_instruction)
 	
@@ -42,8 +40,8 @@ func test_add_invalid_instruction_is_ignored() -> void:
 
 func test_insert_instruction_at_beginning() -> void:
 	var program: Program = Program.new()
-	var instruction1: Instruction = Instruction.new("MOVE", 1, {}, "I1")
-	var instruction2: Instruction = Instruction.new("ATTACK", 2, {}, "I2")
+	var instruction1: Instruction = Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}, "I1")
+	var instruction2: Instruction = Instruction.new("DEBUG_LOG", 0, {"message": "Start"}, "I2")
 	
 	program.add_instruction(instruction1)
 	program.insert_instruction(instruction2, 0)
@@ -55,8 +53,8 @@ func test_insert_instruction_at_beginning() -> void:
 
 func test_insert_instruction_at_end() -> void:
 	var program: Program = Program.new()
-	var instruction1: Instruction = Instruction.new("MOVE", 1, {}, "I1")
-	var instruction2: Instruction = Instruction.new("ATTACK", 2, {}, "I2")
+	var instruction1: Instruction = Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}, "I1")
+	var instruction2: Instruction = Instruction.new("DEBUG_LOG", 0, {"message": "Done"}, "I2")
 	
 	program.add_instruction(instruction1)
 	program.insert_instruction(instruction2, 1)
@@ -67,7 +65,7 @@ func test_insert_instruction_at_end() -> void:
 
 func test_remove_instruction_at_valid_index() -> void:
 	var program: Program = Program.new()
-	var instruction: Instruction = Instruction.new("MOVE", 1)
+	var instruction: Instruction = Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5})
 	program.add_instruction(instruction)
 	
 	var result: bool = program.remove_instruction(0)
@@ -86,13 +84,13 @@ func test_remove_instruction_at_invalid_index() -> void:
 
 func test_get_total_cpu_cost() -> void:
 	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("MOVE", 2))
-	program.add_instruction(Instruction.new("ATTACK", 3))
-	program.add_instruction(Instruction.new("SCAN", 1))
+	program.add_instruction(Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}))
+	program.add_instruction(Instruction.new("JUMP_IF", -1, {"condition": "true", "target_label": "LOOP"}))
+	program.add_instruction(Instruction.new("FIRE_WEAPON", 2))
 	
 	var total_cost: int = program.get_total_cpu_cost()
 	
-	assert_int(total_cost).is_equal(6)
+	assert_int(total_cost).is_equal(4)
 
 
 func test_get_total_cpu_cost_empty_program() -> void:
@@ -114,8 +112,8 @@ func test_validate_empty_program_is_invalid() -> void:
 
 func test_validate_program_with_valid_instructions() -> void:
 	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("MOVE", 1))
-	program.add_instruction(Instruction.new("ATTACK", 2))
+	program.add_instruction(Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 10}))
+	program.add_instruction(Instruction.new("DEBUG_LOG", 0, {"message": "Done"}))
 	
 	var result: Dictionary = program.validate()
 	
@@ -125,7 +123,7 @@ func test_validate_program_with_valid_instructions() -> void:
 
 func test_validate_program_with_invalid_instruction() -> void:
 	var program: Program = Program.new()
-	var valid: Instruction = Instruction.new("MOVE", 1)
+	var valid: Instruction = Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 10})
 	var invalid: Instruction = Instruction.new("", 0)
 	
 	# Manually add invalid instruction (bypassing add_instruction validation)
@@ -138,24 +136,24 @@ func test_validate_program_with_invalid_instruction() -> void:
 	assert_array(result["errors"]).is_not_empty()
 
 
-func test_validate_goto_with_missing_label() -> void:
+func test_validate_jump_if_with_missing_label() -> void:
 	var program: Program = Program.new()
-	var goto_instruction: Instruction = Instruction.new("GOTO", 1, {"label": "START"})
-	program.add_instruction(goto_instruction)
+	var jump_instruction: Instruction = Instruction.new("JUMP_IF", -1, {"condition": "true", "target_label": "START"})
+	program.add_instruction(jump_instruction)
 	
 	var result: Dictionary = program.validate()
 	
 	assert_bool(result["is_valid"]).is_false()
-	assert_str(str(result["errors"])).contains("non-existent label")
+	assert_str(str(result["errors"])).contains("unknown label")
 
 
-func test_validate_goto_with_existing_label() -> void:
+func test_validate_jump_if_with_existing_label() -> void:
 	var program: Program = Program.new()
 	var label: Instruction = Instruction.new("LABEL", 0, {"name": "START"})
-	var goto_instruction: Instruction = Instruction.new("GOTO", 1, {"label": "START"})
+	var jump_instruction: Instruction = Instruction.new("JUMP_IF", -1, {"condition": "true", "target_label": "START"})
 	
 	program.add_instruction(label)
-	program.add_instruction(goto_instruction)
+	program.add_instruction(jump_instruction)
 	
 	var result: Dictionary = program.validate()
 	
@@ -163,36 +161,33 @@ func test_validate_goto_with_existing_label() -> void:
 
 
 func test_duplicate_program_creates_independent_copy() -> void:
-	var original: Program = Program.new("Original", 4)
-	original.add_instruction(Instruction.new("MOVE", 1))
-	original.variables["counter"] = 0
-	original.memory_cells[0] = 42
+	var original: Program = Program.new("Original", 120)
+	original.add_instruction(Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}))
+	original.blackboard_defaults = {"speed": 5}
 	
 	var copy: Program = original.duplicate_program()
 	
 	# Verify same values
 	assert_str(copy.program_name).is_equal("Original")
-	assert_int(copy.max_memory_cells).is_equal(4)
+	assert_int(copy.cpu_budget_per_tick).is_equal(120)
 	assert_array(copy.instructions).has_size(1)
-	assert_int(copy.memory_cells[0]).is_equal(42)
+	assert_dict(copy.blackboard_defaults).contains_key_value("speed", 5)
 	
 	# Verify independence
 	copy.program_name = "Copy"
-	copy.memory_cells[0] = 99
-	copy.variables["counter"] = 10
+	copy.blackboard_defaults["speed"] = 10
 	
 	assert_str(original.program_name).is_equal("Original")
-	assert_int(original.memory_cells[0]).is_equal(42)
-	assert_int(original.variables["counter"]).is_equal(0)
+	assert_int(original.blackboard_defaults["speed"]).is_equal(5)
 
 
-func test_program_to_string_contains_key_information() -> void:
-	var program: Program = Program.new("Test Program", 4)
-	program.add_instruction(Instruction.new("MOVE", 2))
+func test_program_get_description_contains_key_information() -> void:
+	var program: Program = Program.new("Test Program", 120)
+	program.add_instruction(Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}))
 	
-	var result: String = program.to_string()
+	var result: String = program.get_description()
 	
 	assert_str(result).contains("Test Program")
-	assert_str(result).contains("CPU Cost: 2")
-	assert_str(result).contains("Memory Cells: 4")
-	assert_str(result).contains("MOVE")
+	assert_str(result).contains("CPU Cost: 1")
+	assert_str(result).contains("CPU Budget/Tick: 120")
+	assert_str(result).contains("SET_VARIABLE")

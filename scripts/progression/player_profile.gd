@@ -45,8 +45,15 @@ func _init() -> void:
 
 ## Initializes default values for a new profile.
 func _initialize_defaults() -> void:
-	# Start with basic instruction blocks
-	unlocked_blocks = ["MOVE", "ATTACK", "SCAN", "GOTO", "LABEL", "CONDITION"]
+	# Start with basic instruction blocks for tutorial
+	# These are sufficient to complete Stage 1 (Aim & Fire)
+	# Additional blocks unlock through progression
+	unlocked_blocks = [
+		"GET_SENSOR_DATA",
+		"DEBUG_LOG",
+		"SET_ROTATION_TARGET",
+		"FIRE_WEAPON"
+	]
 	resources = {"credits": 0, "data_shards": 0}
 
 
@@ -72,7 +79,12 @@ func from_dictionary(data: Dictionary) -> void:
 	current_level = data.get("current_level", 1)
 	levels_completed = data.get("levels_completed", []).duplicate()
 	resources = data.get("resources", {"credits": 0, "data_shards": 0}).duplicate(true)
-	unlocked_blocks = data.get("unlocked_blocks", ["MOVE", "GOTO", "LABEL"]).duplicate()
+	unlocked_blocks = data.get("unlocked_blocks", [
+		"GET_SENSOR_DATA",
+		"DEBUG_LOG",
+		"SET_ROTATION_TARGET",
+		"FIRE_WEAPON"
+	]).duplicate()
 	unlocked_chips = data.get("unlocked_chips", []).duplicate()
 	upgrade_tree_state = data.get("upgrade_tree_state", {}).duplicate(true)
 	statistics = data.get("statistics", {

@@ -1,6 +1,7 @@
 ## Level - represents a game level/dungeon.
 ## Contains spawn points, enemies, objectives, and win/lose conditions.
 ## Note: This script uses the preload pattern (ADR-002) instead of class_name.
+class_name Level
 extends Node2D
 
 # Preload required classes

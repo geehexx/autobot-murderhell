@@ -3,72 +3,77 @@
 extends GdUnitTestSuite
 
 
+const InstructionScript = preload("res://scripts/core/instruction.gd")
+
+
 func test_instruction_creation_with_defaults() -> void:
-	var instruction: Instruction = Instruction.new()
+	var instruction: Instruction = InstructionScript.new()
 	
 	assert_str(instruction.type).is_empty()
-	assert_int(instruction.cpu_cost).is_equal(1)
+	assert_int(instruction.cpu_cost).is_equal(0)
 	assert_dict(instruction.parameters).is_empty()
 	assert_str(instruction.instruction_id).is_not_empty()
 
 
 func test_instruction_creation_with_parameters() -> void:
-	var params: Dictionary = {"direction": "forward", "distance": 5}
-	var instruction: Instruction = Instruction.new("MOVE", 2, params, "MOVE_001")
+	var params: Dictionary = {"target": "speed", "value": 5}
+	var instruction: Instruction = InstructionScript.new("SET_VARIABLE", -1, params, "SET_001")
 	
-	assert_str(instruction.type).is_equal("MOVE")
-	assert_int(instruction.cpu_cost).is_equal(2)
-	assert_dict(instruction.parameters).contains_key_value("direction", "forward")
-	assert_dict(instruction.parameters).contains_key_value("distance", 5)
-	assert_str(instruction.instruction_id).is_equal("MOVE_001")
+	assert_str(instruction.type).is_equal("SET_VARIABLE")
+	assert_int(instruction.cpu_cost).is_equal(1)
+	assert_dict(instruction.parameters).contains_key_value("target", "speed")
+	assert_dict(instruction.parameters).contains_key_value("value", 5)
+	assert_str(instruction.instruction_id).is_equal("SET_001")
 
 
 func test_instruction_validation_empty_type_is_invalid() -> void:
-	var instruction: Instruction = Instruction.new("", 1)
+	var instruction: Instruction = InstructionScript.new("", 1)
 	
 	assert_bool(instruction.is_valid()).is_false()
 
 
-func test_instruction_validation_zero_cpu_cost_is_invalid() -> void:
-	var instruction: Instruction = Instruction.new("MOVE", 0)
+func test_instruction_validation_unknown_type_is_invalid() -> void:
+	var instruction: Instruction = InstructionScript.new("UNKNOWN", 1)
 	
 	assert_bool(instruction.is_valid()).is_false()
 
 
 func test_instruction_validation_negative_cpu_cost_is_invalid() -> void:
-	var instruction: Instruction = Instruction.new("MOVE", -1)
+	var instruction: Instruction = InstructionScript.new("SET_VARIABLE", -1)
+	instruction.cpu_cost = -1
 	
 	assert_bool(instruction.is_valid()).is_false()
 
 
 func test_instruction_validation_valid_instruction() -> void:
-	var instruction: Instruction = Instruction.new("MOVE", 1)
+	var instruction: Instruction = InstructionScript.new("DEBUG_LOG", 0, {"message": "Hello"})
 	
 	assert_bool(instruction.is_valid()).is_true()
 
 
-func test_instruction_to_string_without_parameters() -> void:
-	var instruction: Instruction = Instruction.new("MOVE", 2, {}, "MOVE_001")
-	var result: String = instruction.to_string()
+func test_instruction_get_description_without_parameters() -> void:
+	var instruction: Instruction = InstructionScript.new("FIRE_WEAPON", 2, {}, "FIRE_001")
+	var result: String = instruction.get_description()
 	
-	assert_str(result).contains("MOVE_001")
-	assert_str(result).contains("MOVE")
+	assert_str(result).contains("FIRE_001")
+	assert_str(result).contains("FIRE_WEAPON")
 	assert_str(result).contains("CPU: 2")
 
 
-func test_instruction_to_string_with_parameters() -> void:
-	var params: Dictionary = {"direction": "forward"}
-	var instruction: Instruction = Instruction.new("MOVE", 2, params, "MOVE_001")
-	var result: String = instruction.to_string()
+func test_instruction_get_description_with_parameters() -> void:
+	var params: Dictionary = {"target": "speed", "value": 10}
+	var instruction: Instruction = InstructionScript.new("SET_VARIABLE", -1, params, "SET_001")
+	var result: String = instruction.get_description()
 	
-	assert_str(result).contains("MOVE_001")
-	assert_str(result).contains("MOVE")
-	assert_str(result).contains("direction")
+	assert_str(result).contains("SET_001")
+	assert_str(result).contains("SET_VARIABLE")
+	assert_str(result).contains("target")
+
 
 
 func test_instruction_duplicate_creates_independent_copy() -> void:
-	var params: Dictionary = {"value": 10}
-	var original: Instruction = Instruction.new("TEST", 3, params, "TEST_001")
+	var params: Dictionary = {"target": "speed", "value": 10}
+	var original: Instruction = InstructionScript.new("SET_VARIABLE", -1, params, "SET_001")
 	var copy: Instruction = original.duplicate_instruction()
 	
 	# Verify copy has same values
@@ -84,7 +89,7 @@ func test_instruction_duplicate_creates_independent_copy() -> void:
 
 
 func test_instruction_id_generation_is_unique() -> void:
-	var instruction1: Instruction = Instruction.new("MOVE")
-	var instruction2: Instruction = Instruction.new("MOVE")
+	var instruction1: Instruction = InstructionScript.new("SET_VARIABLE")
+	var instruction2: Instruction = InstructionScript.new("SET_VARIABLE")
 	
 	assert_str(instruction1.instruction_id).is_not_equal(instruction2.instruction_id)
