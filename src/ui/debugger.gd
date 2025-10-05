@@ -3,8 +3,8 @@
 extends Control
 
 # Preload required classes
-const ProgramScript = preload("res://scripts/core/program.gd")
-const InstructionScript = preload("res://scripts/core/instruction.gd")
+const ProgramScript = preload("res://src/core/program.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
 
 ## Current program being debugged.
 var current_program = null

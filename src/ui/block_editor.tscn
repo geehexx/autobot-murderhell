@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cxk7ydq5n8bns"]
 
-[ext_resource type="Script" path="res://scripts/ui/block_editor.gd" id="1_block_editor"]
+[ext_resource type="Script" path="res://src/ui/block_editor.gd" id="1_block_editor"]
 
 [node name="BlockEditor" type="Control"]
 layout_mode = 3

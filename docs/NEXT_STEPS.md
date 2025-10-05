@@ -41,7 +41,7 @@ godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add test --con
 #### A. Integrate Tutorial System
 
 **Tasks:**
-1. Create scene file `scenes/ui/tutorial_overlay.tscn`
+1. Create scene file `src/ui/tutorial_overlay.tscn`
 2. Add TutorialSystem to main game scene
 3. Connect to level_1_tutorial.tscn
 4. Add EventBus signals:
@@ -56,7 +56,7 @@ godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add test --con
 ```gdscript
 extends GdUnitTestSuite
 
-const TutorialSystemScript = preload("res://scripts/ui/tutorial_system.gd")
+const TutorialSystemScript = preload("res://src/ui/tutorial_system.gd")
 
 func test_tutorial_state_progression():
     var tutorial = TutorialSystemScript.new()
@@ -72,7 +72,7 @@ func test_tutorial_state_progression():
 #### B. Integrate Upgrade Tree
 
 **Tasks:**
-1. Create scene file `scenes/ui/upgrade_tree.tscn`
+1. Create scene file `src/ui/upgrade_tree.tscn`
 2. Add UpgradeTree tab to main UI
 3. Connect to GameController's PlayerProfile
 4. Wire up EventBus.profile_updated signal
@@ -85,8 +85,8 @@ func test_tutorial_state_progression():
 ```gdscript
 extends GdUnitTestSuite
 
-const UpgradeTreeScript = preload("res://scripts/ui/upgrade_tree.gd")
-const PlayerProfileScript = preload("res://scripts/progression/player_profile.gd")
+const UpgradeTreeScript = preload("res://src/ui/upgrade_tree.gd")
+const PlayerProfileScript = preload("res://src/progression/player_profile.gd")
 
 func test_upgrade_purchase():
     var profile = PlayerProfileScript.new()
@@ -111,7 +111,7 @@ func test_upgrade_purchase():
    - Create/source simple 2D sprite (32x32 or 64x64)
    - Player android: Blue/cyan tint
    - Enemy android: Red/orange tint
-   - Update `_add_android_visual()` in `simulation_manager.gd`
+   - Update `_add_android_visual()` in `src/simulation/simulation_manager.gd`
 
 2. **UI Theme:**
    - Create `assets/themes/main_theme.tres`
@@ -131,7 +131,7 @@ func test_upgrade_purchase():
 
 **Reference:**
 ```gdscript
-# Update in simulation_manager.gd
+# Update in src/simulation/simulation_manager.gd
 func _add_android_visual(android, color: Color) -> void:
     var sprite: Sprite2D = Sprite2D.new()
     sprite.texture = preload("res://assets/sprites/android.png")
@@ -161,9 +161,9 @@ func _add_android_visual(android, color: Color) -> void:
 
 **File to Update:**
 ```
-scripts/simulation/components/ai_core_component.gd
-scripts/simulation/systems/movement_system.gd
-scripts/simulation/systems/combat_system.gd
+src/simulation/components/ai_core_component.gd
+src/simulation/systems/movement_system.gd
+src/simulation/systems/combat_system.gd
 ```
 
 ### Priority 4: Additional Levels
@@ -171,12 +171,12 @@ scripts/simulation/systems/combat_system.gd
 **Current State:** Only level_1_tutorial exists
 
 **Tasks:**
-1. Create `scenes/levels/level_2.tscn`
+1. Create `src/simulation/levels/level_2.tscn`
    - More enemies (3-4)
    - Obstacles/walls
    - Larger arena
 
-2. Create `scenes/levels/level_3.tscn`
+2. Create `src/simulation/levels/level_3.tscn`
    - Multiple rooms
    - Enemy patrol patterns
    - Resource pickups
@@ -198,7 +198,7 @@ tests/services/test_ai_translation_service.gd
 tests/services/test_persistence_service.gd
 tests/progression/test_player_profile.gd
 tests/simulation/test_health_component.gd
-tests/integration/test_game_flow.gd
+tests/ui/test_game_flow.gd
 ```
 
 **Pattern to Apply:**
@@ -208,7 +208,7 @@ func test_example() -> void:
     var program: Program = Program.new()
 
 # NEW (correct):
-const ProgramScript = preload("res://scripts/core/program.gd")
+const ProgramScript = preload("res://src/core/program.gd")
 
 func test_example() -> void:
     var program = ProgramScript.new()
@@ -222,7 +222,7 @@ func test_example() -> void:
 - `tests/simulation/test_movement_system.gd`
 - `tests/simulation/test_combat_system.gd`
 - `tests/simulation/test_ai_core_component.gd`
-- `tests/integration/test_scene_based_gameplay.gd` (mentioned in prompt, create if missing)
+- `tests/ui/test_scene_based_gameplay.gd`
 
 ### Target Coverage
 
@@ -272,7 +272,7 @@ Only after MVP features are complete and tested.
 The new features require additional EventBus signals:
 
 ```gdscript
-# In autoload/event_bus.gd
+# In src/autoload/event_bus.gd
 
 # Tutorial System
 signal instruction_added(instruction: Dictionary)

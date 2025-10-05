@@ -3,10 +3,10 @@
 extends Node
 
 # Preload required classes
-const AITranslationServiceScript = preload("res://scripts/services/ai_translation_service.gd")
-const PersistenceServiceScript = preload("res://scripts/services/persistence_service.gd")
-const PlayerProfileScript = preload("res://scripts/progression/player_profile.gd")
-const ProgramScript = preload("res://scripts/core/program.gd")
+const AITranslationServiceScript = preload("res://src/services/ai_translation_service.gd")
+const PersistenceServiceScript = preload("res://src/services/persistence_service.gd")
+const PlayerProfileScript = preload("res://src/progression/player_profile.gd")
+const ProgramScript = preload("res://src/core/program.gd")
 
 ## Current game phase.
 enum Phase {

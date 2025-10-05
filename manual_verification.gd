@@ -2,8 +2,8 @@
 ## Loads and tests the game scene to verify the gameplay loop works
 extends SceneTree
 
-const ProgramScript = preload("res://scripts/core/program.gd")
-const InstructionScript = preload("res://scripts/core/instruction.gd")
+const ProgramScript = preload("res://src/core/program.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
 
 var game_scene
 
@@ -11,7 +11,7 @@ func _initialize() -> void:
 	print("\n========== MANUAL VERIFICATION START ==========\n")
 	
 	# Load the game scene
-	var game_scene_packed = load("res://scenes/game_scene.tscn")
+	var game_scene_packed = load("res://src/ui/game_scene.tscn")
 	game_scene = game_scene_packed.instantiate()
 	root.add_child(game_scene)
 	print("[VERIFY] ✓ Game scene loaded successfully")

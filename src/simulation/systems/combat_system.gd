@@ -4,7 +4,7 @@ class_name CombatSystem
 extends Node
 
 # Preload required classes
-const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
+const AndroidEntityScript = preload("res://src/simulation/android_entity.gd")
 
 ## Default values.
 const DEFAULT_DAMAGE: float = 10.0

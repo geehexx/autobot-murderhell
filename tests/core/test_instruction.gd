@@ -3,7 +3,7 @@
 extends GdUnitTestSuite
 
 
-const InstructionScript = preload("res://scripts/core/instruction.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
 
 
 func test_instruction_creation_with_defaults() -> void:

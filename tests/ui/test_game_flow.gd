@@ -8,10 +8,10 @@ var suite_attributes := {
 }
 
 # Preload required scripts
-const ProgramScript = preload("res://scripts/core/program.gd")
-const InstructionScript = preload("res://scripts/core/instruction.gd")
-const AITranslationServiceScript = preload("res://scripts/services/ai_translation_service.gd")
-const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
+const ProgramScript = preload("res://src/core/program.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
+const AITranslationServiceScript = preload("res://src/services/ai_translation_service.gd")
+const AndroidEntityScript = preload("res://src/simulation/android_entity.gd")
 
 var translation_service
 var test_android

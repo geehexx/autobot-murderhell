@@ -39,3 +39,7 @@ test_results/
 
 # External addons (installed via Asset Library)
 addons/
+
+# Build & export artifacts
+dist/
+.godot/

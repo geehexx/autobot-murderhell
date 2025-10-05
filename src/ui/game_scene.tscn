@@ -1,9 +1,9 @@
 [gd_scene load_steps=6 format=3 uid="uid://c8kj3v5n9qwpa"]
 
-[ext_resource type="Script" path="res://scripts/game_controller.gd" id="1_game_controller"]
-[ext_resource type="PackedScene" uid="uid://cxk7ydq5n8bns" path="res://scenes/ui/block_editor.tscn" id="2_block_editor"]
-[ext_resource type="PackedScene" uid="uid://cr4vxs3j5n8pd" path="res://scenes/ui/debugger.tscn" id="3_debugger"]
-[ext_resource type="Script" path="res://scripts/simulation/simulation_manager.gd" id="4_simulation"]
+[ext_resource type="Script" path="res://src/core/game_controller.gd" id="1_game_controller"]
+[ext_resource type="PackedScene" uid="uid://cxk7ydq5n8bns" path="res://src/ui/block_editor.tscn" id="2_block_editor"]
+[ext_resource type="PackedScene" uid="uid://cr4vxs3j5n8pd" path="res://src/ui/debugger.tscn" id="3_debugger"]
+[ext_resource type="Script" path="res://src/simulation/simulation_manager.gd" id="4_simulation"]
 
 [sub_resource type="World2D" id="World2D_simulation"]
 

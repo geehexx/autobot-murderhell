@@ -3,9 +3,9 @@
 extends SceneTree
 
 # Preload required scripts
-const ProgramScript = preload("res://scripts/core/program.gd")
-const InstructionScript = preload("res://scripts/core/instruction.gd")
-const AITranslationServiceScript = preload("res://scripts/services/ai_translation_service.gd")
+const ProgramScript = preload("res://src/core/program.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
+const AITranslationServiceScript = preload("res://src/services/ai_translation_service.gd")
 
 
 func _initialize() -> void:

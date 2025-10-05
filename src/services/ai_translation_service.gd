@@ -1,18 +1,15 @@
 ## AI Translation Service
 ## Translates visual block Programs into executable logic.
-## Uses the Visitor pattern to decouple translation logic from block objects.
 ## This is the core service that bridges the Programming and Simulation contexts.
 class_name AITranslationService
 extends Node
 
 # Preload required classes
-const ProgramScript = preload("res://scripts/core/program.gd")
-const InstructionScript = preload("res://scripts/core/instruction.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
+const ProgramScript = preload("res://src/core/program.gd")
 
 ## Singleton instance
 static var instance: AITranslationService = null
-
-
 func _init() -> void:
 	if instance == null:
 		instance = self

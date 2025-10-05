@@ -3,11 +3,11 @@
 extends Node
 
 # Preload required classes
-const MovementSystemScript = preload("res://scripts/simulation/systems/movement_system.gd")
-const CombatSystemScript = preload("res://scripts/simulation/systems/combat_system.gd")
-const LevelScript = preload("res://scripts/simulation/level.gd")
-const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
-const ProgramScript = preload("res://scripts/core/program.gd")
+const MovementSystemScript = preload("res://src/simulation/systems/movement_system.gd")
+const CombatSystemScript = preload("res://src/simulation/systems/combat_system.gd")
+const LevelScript = preload("res://src/simulation/level.gd")
+const AndroidEntityScript = preload("res://src/simulation/android_entity.gd")
+const ProgramScript = preload("res://src/core/program.gd")
 
 ## References to systems.
 var movement_system
@@ -75,11 +75,11 @@ func _load_level(level_id: String) -> void:
 		current_level = null
 	
 	# Load level scene
-	var level_path: String = "res://scenes/levels/%s.tscn" % level_id
+	var level_path: String = "res://src/simulation/levels/%s.tscn" % level_id
 	
 	# Try tutorial level
 	if level_id == "level_1":
-		level_path = "res://scenes/levels/level_1_tutorial.tscn"
+		level_path = "res://src/simulation/levels/level_1_tutorial.tscn"
 	
 	if not ResourceLoader.exists(level_path):
 		push_error("[SimulationManager] Level not found: %s" % level_path)

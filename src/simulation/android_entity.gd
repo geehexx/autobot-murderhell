@@ -5,8 +5,8 @@ class_name AndroidEntity
 extends Node2D
 
 # Preload required classes
-const HealthComponentScript = preload("res://scripts/simulation/components/health_component.gd")
-const AICoreComponentScript = preload("res://scripts/simulation/components/ai_core_component.gd")
+const HealthComponentScript = preload("res://src/simulation/components/health_component.gd")
+const AICoreComponentScript = preload("res://src/simulation/components/ai_core_component.gd")
 
 ## Reference to the HealthComponent.
 var health_component = null

@@ -146,6 +146,15 @@ Improve the code design without changing its behavior. Run tests after each chan
 
 We strictly follow the [Official GDScript Style Guide](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/style_guide.html) with project-specific adaptations.
 
+## Code Quality and Formatting
+
+`pyproject.toml` is the single source of truth for all formatting and linting rules. Before submitting any change:
+
+1. Run `gdformat .` to apply canonical formatting.
+2. Run `gdlint .` to ensure the codebase passes all lint checks.
+
+Do not override these rules locally; if updates are necessary, propose changes to `pyproject.toml` via ADR and review.
+
 ### Naming Conventions
 
 - **File/Folder Names**: `snake_case` (e.g., `android_entity.gd`, `block_editor.tscn`)

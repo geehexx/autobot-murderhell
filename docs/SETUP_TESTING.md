@@ -30,7 +30,7 @@ git submodule update --init --recursive
 
 ### Preventing `--check-only` hangs
 
-Godot will **hang indefinitely** if the startup scene never calls `SceneTree.quit()` while running in `--check-only` mode. We fixed this by adding `_maybe_quit_for_headless_check()` in `scripts/game_controller.gd`, which detects the CLI flag and defers a quit. If you add new entry points, make sure they also honor `--check-only`.
+Godot will **hang indefinitely** if the startup scene never calls `SceneTree.quit()` while running in `--check-only` mode. We fixed this by adding `_maybe_quit_for_headless_check()` in `src/core/game_controller.gd`, which detects the CLI flag and defers a quit. If you add new entry points, make sure they also honor `--check-only`.
 
 To guarantee the check exits during CI, use `tools/run_godot_checks.sh` (added in this repo) or wrap the command with `timeout` locally:
 
@@ -84,7 +84,7 @@ Test files in `tests/` directory use the old `class_name` pattern and need refac
 - `tests/services/test_persistence_service.gd`
 - `tests/progression/test_player_profile.gd`
 - `tests/simulation/test_health_component.gd`
-- `tests/integration/test_game_flow.gd`
+- `tests/ui/test_game_flow.gd`
 
 **Required changes:**
 ```gdscript
@@ -98,8 +98,8 @@ func test_example() -> void:
 # NEW (correct pattern)
 extends GdUnitTestSuite
 
-const ProgramScript = preload("res://scripts/core/program.gd")
-const InstructionScript = preload("res://scripts/core/instruction.gd")
+const ProgramScript = preload("res://src/core/program.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
 
 func test_example() -> void:
     var program = ProgramScript.new()
@@ -129,7 +129,7 @@ Follow TDD (Test-Driven Development):
 ## Test suite for MyFeature
 extends GdUnitTestSuite
 
-const MyFeatureScript = preload("res://scripts/my_feature.gd")
+const MyFeatureScript = preload("res://src/my_feature.gd")
 
 func before_test() -> void:
     # Setup before each test

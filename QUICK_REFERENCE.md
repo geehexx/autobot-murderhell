@@ -42,8 +42,7 @@ godot --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add tests/core/t
 
 4. **Write minimal implementation (GREEN)**
    ```gdscript
-   # scripts/core/my_class.gd
-   class_name MyClass
+   # src/core/my_class.gd
    extends RefCounted
    
    func do_something() -> int:
@@ -105,7 +104,7 @@ EventBus.load_requested.emit()
 
 2. **Add translation in AITranslationService**
    ```gdscript
-   # scripts/services/ai_translation_service.gd
+   # src/services/ai_translation_service.gd
    match instruction.type:
        "MY_INSTRUCTION":
            translated["execute"] = _create_my_instruction_executor(instruction.parameters)
@@ -122,11 +121,13 @@ EventBus.load_requested.emit()
 
 4. **Add to Block Editor palette**
    ```gdscript
-   # scripts/ui/block_editor.gd
-   func _create_instruction_from_type(block_type: String) -> Instruction:
+   # src/ui/block_editor.gd
+   const InstructionScript = preload("res://src/core/instruction.gd")
+
+   func _create_instruction_from_type(block_type: String):
        match block_type:
            "MY_INSTRUCTION":
-               return Instruction.new("MY_INSTRUCTION", 2, {"param1": "default"})
+               return InstructionScript.new("MY_INSTRUCTION", 2, {"param1": "default"})
    ```
 
 5. **Write tests**
@@ -139,25 +140,29 @@ EventBus.load_requested.emit()
        
        assert_bool(result["success"]).is_true()
    ```
-
 ## 🏗️ Architecture Patterns
 
 ### Adding a New Component to Android
 
 ```gdscript
-# 1. Create component script
-class_name MyComponent
-extends Node
+# 1. **Create component script**
+   ```gdscript
+   extends Node
 
 @export var my_property: float = 10.0
 
 func do_something() -> void:
     print("Component does something")
 
-# 2. Add to AndroidEntity
-# In android_entity.gd
-@onready var my_component: MyComponent = $MyComponent
+# 2. **Add to AndroidEntity**
+   ```gdscript
+   # src/simulation/android_entity.gd
+   const MyComponentScript = preload("res://src/simulation/components/my_component.gd")
 
+   func _ready() -> void:
+       var my_component = MyComponentScript.new()
+       add_child(my_component)
+   ```
 # 3. Access in systems
 func _process_android(android: AndroidEntity) -> void:
     if android.has_node("MyComponent"):
@@ -168,8 +173,7 @@ func _process_android(android: AndroidEntity) -> void:
 ### Creating a New System
 
 ```gdscript
-# scripts/simulation/systems/my_system.gd
-class_name MySystem
+# src/simulation/systems/my_system.gd
 extends Node
 
 func _ready() -> void:
@@ -255,7 +259,6 @@ func get_damage(base, mult):  # No types
 ```gdscript
 ## Brief description of the class.
 ## More detailed explanation if needed.
-class_name MyClass
 extends Node
 
 ## The player's current health points.

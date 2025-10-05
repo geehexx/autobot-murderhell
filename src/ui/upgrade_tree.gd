@@ -3,7 +3,7 @@
 extends Control
 
 ## Preload required scripts
-const PlayerProfileScript = preload("res://scripts/progression/player_profile.gd")
+const PlayerProfileScript = preload("res://src/progression/player_profile.gd")
 
 ## Reference to player profile
 var player_profile = null

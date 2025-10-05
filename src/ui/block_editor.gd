@@ -4,9 +4,9 @@
 extends Control
 
 # Preload required classes
-const ProgramScript = preload("res://scripts/core/program.gd")
-const InstructionScript = preload("res://scripts/core/instruction.gd")
-const PlayerProfileScript = preload("res://scripts/progression/player_profile.gd")
+const ProgramScript = preload("res://src/core/program.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
+const PlayerProfileScript = preload("res://src/progression/player_profile.gd")
 
 ## Reference to current Program.
 var current_program = null
@@ -22,7 +22,7 @@ var player_profile = null
 @onready var deploy_button: Button = $MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer/DeployButton
 
 ## Packed scene for block UI elements.
-var block_ui_scene: PackedScene = preload("res://scenes/ui/block_ui.tscn")
+var block_ui_scene: PackedScene = preload("res://src/ui/block_ui.tscn")
 
 
 func _ready() -> void:

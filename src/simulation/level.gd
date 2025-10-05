@@ -1,11 +1,10 @@
 ## Level - represents a game level/dungeon.
 ## Contains spawn points, enemies, objectives, and win/lose conditions.
 ## Note: This script uses the preload pattern (ADR-002) instead of class_name.
-class_name Level
 extends Node2D
 
 # Preload required classes
-const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
+const AndroidEntityScript = preload("res://src/simulation/android_entity.gd")
 
 ## Level identification.
 @export var level_id: String = "level_1"
@@ -165,8 +164,8 @@ func _setup_enemy_ai() -> void:
 		return
 	
 	# Create a simple default enemy program (stand and attack when player approaches)
-	const ProgramScript = preload("res://scripts/core/program.gd")
-	const InstructionScript = preload("res://scripts/core/instruction.gd")
+	const ProgramScript = preload("res://src/core/program.gd")
+	const InstructionScript = preload("res://src/core/instruction.gd")
 	
 	var enemy_program = ProgramScript.new("Enemy AI")
 	enemy_program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "START"}))

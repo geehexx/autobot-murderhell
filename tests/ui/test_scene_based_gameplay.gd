@@ -4,14 +4,14 @@
 extends GdUnitTestSuite
 
 # Preload required scripts
-const ProgramScript = preload("res://scripts/core/program.gd")
-const InstructionScript = preload("res://scripts/core/instruction.gd")
+const ProgramScript = preload("res://src/core/program.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
 
 
 ## TEST 1: Full gameplay loop - Create program, deploy, and verify execution
 func test_complete_gameplay_loop_with_scene() -> void:
 	# Load the actual game scene
-	var runner: GdUnitSceneRunner = scene_runner("res://scenes/game_scene.tscn")
+	var runner: GdUnitSceneRunner = scene_runner("res://src/ui/game_scene.tscn")
 	var game_scene = runner.scene()
 	
 	print("\n[SCENE TEST] === TESTING COMPLETE GAMEPLAY LOOP ===")
@@ -90,7 +90,7 @@ func test_complete_gameplay_loop_with_scene() -> void:
 
 ## TEST 2: Test multiple deployment cycles (signal cleanup)
 func test_multiple_deployment_cycles() -> void:
-	var runner: GdUnitSceneRunner = scene_runner("res://scenes/game_scene.tscn")
+	var runner: GdUnitSceneRunner = scene_runner("res://src/ui/game_scene.tscn")
 	var game_scene = runner.scene()
 	
 	print("\n[SCENE TEST] === TESTING MULTIPLE DEPLOYMENT CYCLES ===")
@@ -128,7 +128,7 @@ func test_multiple_deployment_cycles() -> void:
 
 ## TEST 3: Test enemy AI initialization
 func test_enemy_ai_initialization() -> void:
-	var runner: GdUnitSceneRunner = scene_runner("res://scenes/game_scene.tscn")
+	var runner: GdUnitSceneRunner = scene_runner("res://src/ui/game_scene.tscn")
 	var game_scene = runner.scene()
 	
 	print("\n[SCENE TEST] === TESTING ENEMY AI INITIALIZATION ===")
@@ -177,7 +177,7 @@ func test_enemy_ai_initialization() -> void:
 
 ## TEST 4: Test program with ATTACK instruction
 func test_attack_instruction_execution() -> void:
-	var runner: GdUnitSceneRunner = scene_runner("res://scenes/game_scene.tscn")
+	var runner: GdUnitSceneRunner = scene_runner("res://src/ui/game_scene.tscn")
 	var game_scene = runner.scene()
 	
 	print("\n[SCENE TEST] === TESTING ATTACK INSTRUCTION ===")
@@ -222,7 +222,7 @@ func test_attack_instruction_execution() -> void:
 
 ## TEST 5: Test program with loop (LABEL + GOTO)
 func test_program_loop_execution() -> void:
-	var runner: GdUnitSceneRunner = scene_runner("res://scenes/game_scene.tscn")
+	var runner: GdUnitSceneRunner = scene_runner("res://src/ui/game_scene.tscn")
 	var game_scene = runner.scene()
 	
 	print("\n[SCENE TEST] === TESTING PROGRAM LOOP ===")

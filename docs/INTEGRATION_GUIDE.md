@@ -8,7 +8,7 @@
 
 ### Step 1: Add Required EventBus Signals
 
-Add to `autoload/event_bus.gd`:
+Add to `src/autoload/event_bus.gd`:
 
 ```gdscript
 ## Tutorial and progression signals
@@ -18,7 +18,7 @@ signal profile_updated()  # When player profile changes
 
 ### Step 2: Update BlockEditor to Emit Signal
 
-In `scripts/ui/block_editor.gd`, when adding an instruction:
+In `src/ui/block_editor.gd`, when adding an instruction:
 
 ```gdscript
 func _on_add_block_button_pressed(block_type: String) -> void:
@@ -30,20 +30,19 @@ func _on_add_block_button_pressed(block_type: String) -> void:
         "cpu_cost": instruction.cpu_cost,
         "parameters": instruction.parameters
     })
-```
 
 ### Step 3: Add Tutorial System to Main Scene
 
-In `scenes/main.tscn` or `scenes/game_scene.tscn`:
+In `src/ui/main.tscn` or `src/ui/game_scene.tscn`:
 
-1. Add TutorialSystem as a child node (CanvasLayer type)
-2. Attach script: `res://scripts/ui/tutorial_system.gd`
+12. Add TutorialSystem as a child node (CanvasLayer type)
+3. Attach script: `res://src/ui/tutorial_system.gd`
 3. Position layer above other UI (layer value: 10)
 
-Or via code in `scripts/main.gd`:
+Or via code in `src/ui/main.gd`:
 
 ```gdscript
-const TutorialSystemScript = preload("res://scripts/ui/tutorial_system.gd")
+const TutorialSystemScript = preload("res://src/ui/tutorial_system.gd")
 
 func _ready() -> void:
     var tutorial_system = TutorialSystemScript.new()
@@ -58,7 +57,7 @@ func _ready() -> void:
 
 ### Step 4: Connect to Level Start
 
-In `scripts/game_controller.gd` or wherever levels start:
+In `src/core/game_controller.gd` or wherever levels start:
 
 ```gdscript
 func _on_level_started(level_id: String) -> void:
@@ -75,22 +74,22 @@ func _on_level_started(level_id: String) -> void:
 
 Option A: **Add to existing TabContainer**
 
-In `scenes/main.tscn`:
+In `src/ui/main.tscn`:
 1. Select the existing TabContainer
 2. Add new tab: "Upgrades"
 3. Add Control node as child
-4. Attach script: `res://scripts/ui/upgrade_tree.gd`
+4. Attach script: `res://src/ui/upgrade_tree.gd`
 
 Option B: **Create as separate scene**
 
-1. Create `scenes/ui/upgrade_tree.tscn`
+1. Create `src/ui/upgrade_tree.tscn`
 2. Root node: Control (anchor to full rect)
-3. Attach script: `res://scripts/ui/upgrade_tree.gd`
+3. Attach script: `res://src/ui/upgrade_tree.gd`
 4. Instance in main scene
 
 ### Step 2: Connect to PlayerProfile
 
-In `scripts/game_controller.gd`:
+In `src/core/game_controller.gd`:
 
 ```gdscript
 func _setup_ui() -> void:
@@ -104,7 +103,7 @@ func _setup_ui() -> void:
 
 ### Step 3: Update PlayerProfile to Emit Signal
 
-In `scripts/progression/player_profile.gd`, after successful purchases:
+In `src/progression/player_profile.gd`, after successful purchases:
 
 ```gdscript
 func purchase_upgrade(upgrade_id: String, cost_credits: int, cost_shards: int) -> bool:
@@ -168,9 +167,9 @@ Create `tests/integration/test_tutorial_and_upgrades.gd`:
 ```gdscript
 extends GdUnitTestSuite
 
-const TutorialSystemScript = preload("res://scripts/ui/tutorial_system.gd")
-const UpgradeTreeScript = preload("res://scripts/ui/upgrade_tree.gd")
-const PlayerProfileScript = preload("res://scripts/progression/player_profile.gd")
+const TutorialSystemScript = preload("res://src/ui/tutorial_system.gd")
+const UpgradeTreeScript = preload("res://src/ui/upgrade_tree.gd")
+const PlayerProfileScript = preload("res://src/progression/player_profile.gd")
 
 func test_tutorial_full_flow():
     var tutorial = TutorialSystemScript.new()
@@ -253,9 +252,9 @@ func test_upgrade_purchase_flow():
 ### Complete Tutorial Integration Example
 
 ```gdscript
-# In scripts/game_controller.gd
+# In src/core/game_controller.gd
 
-const TutorialSystemScript = preload("res://scripts/ui/tutorial_system.gd")
+const TutorialSystemScript = preload("res://src/ui/tutorial_system.gd")
 
 var tutorial_system = null
 
@@ -279,9 +278,9 @@ func _on_level_started(level_id: String) -> void:
 ### Complete Upgrade Tree Integration Example
 
 ```gdscript
-# In scripts/game_controller.gd
+# In src/core/game_controller.gd
 
-const UpgradeTreeScript = preload("res://scripts/ui/upgrade_tree.gd")
+const UpgradeTreeScript = preload("res://src/ui/upgrade_tree.gd")
 
 var upgrade_tree = null
 

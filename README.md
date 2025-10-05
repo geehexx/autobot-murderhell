@@ -11,19 +11,25 @@ A single-player, isometric dungeon crawler where players program their android's
 
 ```
 autobot-murderhell/
-├── autoload/          # Global singleton scripts (Event Bus)
-├── scenes/            # Scene files (.tscn)
-│   ├── ui/           # UI scenes (Block Editor, Debugger, Upgrade Tree)
-│   ├── entities/     # Entity scenes (Android, Chips, etc.)
-│   └── levels/       # Level scenes
-├── scripts/           # GDScript source files
-│   ├── core/         # Core domain entities (Programming Context)
-│   ├── simulation/   # Simulation systems (Simulation Context)
-│   ├── progression/  # Progression system (Progression Context)
-│   └── services/     # Services (AI Translation, Persistence)
-├── tests/             # GdUnit4 test files
-├── assets/            # Game assets (sprites, sounds, etc.)
-└── addons/            # Godot plugins (GdUnit4)
+├── addons/                  # Godot plugins (e.g., GdUnit4)
+├── dist/                    # Export artifacts (ignored in VCS)
+├── docs/
+│   ├── adr/                # Architecture Decision Records
+│   └── design/             # High-level design documents
+├── src/                     # Feature-based Godot content
+│   ├── autoload/           # Global singletons (e.g., EventBus)
+│   ├── core/               # Core domain logic (programs, instructions)
+│   ├── progression/        # Player progression systems
+│   ├── services/           # Cross-cutting services (AI translation, persistence)
+│   ├── simulation/         # Simulation systems, components, and levels
+│   └── ui/                 # UI scenes and scripts
+├── tests/                   # GdUnit4 suites mirroring `src/`
+│   ├── core/
+│   ├── progression/
+│   ├── services/
+│   ├── simulation/
+│   └── ui/
+└── project.godot            # Godot project configuration
 ```
 
 ## Development Standards
@@ -40,6 +46,25 @@ autobot-murderhell/
 3. Open the project in Godot
 4. Install GdUnit4 plugin from the Asset Library
 5. Run tests: `Project → Tools → GdUnit4 → Run All Tests`
+
+### GDScript Formatting & Linting
+
+This project uses [gdtoolkit](https://github.com/Scony/godot-gdscript-toolkit) for automated formatting and linting. All configuration lives in `pyproject.toml` and serves as the single source of truth for code style.
+
+1. Install gdtoolkit (requires Python 3.9+):
+   ```bash
+   pip install godot-gdscript-toolkit
+   ```
+2. Format the entire repository:
+   ```bash
+   gdformat .
+   ```
+3. Run lint checks:
+   ```bash
+   gdlint .
+   ```
+
+Run these commands before committing to keep the tree compliant with project standards.
 
 ## Architecture
 

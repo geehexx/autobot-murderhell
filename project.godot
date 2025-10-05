@@ -13,13 +13,13 @@ config_version=5
 config/name="Autobot Murderhell"
 config/description="A visual programming dungeon crawler where players program their android's AI"
 config/version="0.1.0"
-run/main_scene="res://scenes/game_scene.tscn"
+run/main_scene="res://src/ui/main.tscn"
 config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
-EventBus="*res://autoload/event_bus.gd"
+EventBus="*res://src/autoload/event_bus.gd"
 
 [debug]
 

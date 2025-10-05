@@ -2,8 +2,12 @@
 extends GdUnitTestSuite
 
 
+const LevelScript = preload("res://src/simulation/level.gd")
+const AndroidEntityScript = preload("res://src/simulation/android_entity.gd")
+
+
 func test_level_initialization() -> void:
-	var level: Level = auto_free(Level.new())
+	var level = auto_free(LevelScript.new())
 	level.level_id = "test_level"
 	level.level_name = "Test Level"
 	add_child(level)
@@ -16,11 +20,11 @@ func test_level_initialization() -> void:
 
 
 func test_start_level_activates() -> void:
-	var level: Level = auto_free(Level.new())
+	var level = auto_free(LevelScript.new())
 	add_child(level)
 	await await_idle_frame()
 	
-	var player: AndroidEntity = auto_free(AndroidEntity.new())
+	var player = auto_free(AndroidEntityScript.new())
 	add_child(player)
 	
 	level.start_level(player)
@@ -31,12 +35,12 @@ func test_start_level_activates() -> void:
 
 
 func test_start_level_positions_player_at_spawn() -> void:
-	var level: Level = auto_free(Level.new())
+	var level = auto_free(LevelScript.new())
 	level.player_spawn_position = Vector2(200, 300)
 	add_child(level)
 	await await_idle_frame()
 	
-	var player: AndroidEntity = auto_free(AndroidEntity.new())
+	var player = auto_free(AndroidEntityScript.new())
 	add_child(player)
 	
 	level.start_level(player)
@@ -45,17 +49,17 @@ func test_start_level_positions_player_at_spawn() -> void:
 
 
 func test_defeat_all_enemies_win_condition() -> void:
-	var level: Level = auto_free(Level.new())
-	level.win_condition = Level.WinCondition.DEFEAT_ALL_ENEMIES
+	var level = auto_free(LevelScript.new())
+	level.win_condition = LevelScript.WinCondition.DEFEAT_ALL_ENEMIES
 	add_child(level)
 	await await_idle_frame()
 	
-	var player: AndroidEntity = auto_free(AndroidEntity.new())
+	var player = auto_free(AndroidEntityScript.new())
 	player.add_to_group("androids")
 	add_child(player)
 	
 	# Create enemy
-	var enemy: AndroidEntity = auto_free(AndroidEntity.new())
+	var enemy = auto_free(AndroidEntityScript.new())
 	enemy.faction = "enemy"
 	enemy.add_to_group("androids")
 	add_child(enemy)
@@ -77,12 +81,12 @@ func test_defeat_all_enemies_win_condition() -> void:
 
 
 func test_time_limit_lose_condition() -> void:
-	var level: Level = auto_free(Level.new())
+	var level = auto_free(LevelScript.new())
 	level.time_limit = 1.0  # 1 second limit
 	add_child(level)
 	await await_idle_frame()
 	
-	var player: AndroidEntity = auto_free(AndroidEntity.new())
+	var player = auto_free(AndroidEntityScript.new())
 	add_child(player)
 	
 	level.start_level(player)
@@ -94,21 +98,21 @@ func test_time_limit_lose_condition() -> void:
 
 
 func test_get_living_enemy_count() -> void:
-	var level: Level = auto_free(Level.new())
+	var level = auto_free(LevelScript.new())
 	add_child(level)
 	await await_idle_frame()
 	
-	var player: AndroidEntity = auto_free(AndroidEntity.new())
+	var player = auto_free(AndroidEntityScript.new())
 	player.add_to_group("androids")
 	add_child(player)
 	
 	# Create two enemies
-	var enemy1: AndroidEntity = auto_free(AndroidEntity.new())
+	var enemy1 = auto_free(AndroidEntityScript.new())
 	enemy1.faction = "enemy"
 	enemy1.add_to_group("androids")
 	add_child(enemy1)
 	
-	var enemy2: AndroidEntity = auto_free(AndroidEntity.new())
+	var enemy2 = auto_free(AndroidEntityScript.new())
 	enemy2.faction = "enemy"
 	enemy2.add_to_group("androids")
 	add_child(enemy2)

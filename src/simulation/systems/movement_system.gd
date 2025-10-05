@@ -4,7 +4,7 @@ class_name MovementSystem
 extends Node
 
 # Preload required classes
-const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
+const AndroidEntityScript = preload("res://src/simulation/android_entity.gd")
 
 ## Default movement speed.
 const DEFAULT_SPEED: float = 100.0
