@@ -339,7 +339,7 @@ git commit -m "ci: add GitHub Actions CI/CD pipelines
 
 Closes #[issue-number]"
 
-git add scripts/ui/tutorial_system.gd
+git add src/ui/tutorial_system.gd
 git commit -m "feat(tutorial): implement tutorial system with State Machine
 
 - Create 9-state tutorial flow for level 1
@@ -349,7 +349,7 @@ git commit -m "feat(tutorial): implement tutorial system with State Machine
 
 Refs: ADR-001, #[issue-number]"
 
-git add scripts/ui/upgrade_tree.gd
+git add src/ui/upgrade_tree.gd
 git commit -m "feat(upgrades): implement upgrade tree UI
 
 - Create scrollable upgrade list with purchase logic

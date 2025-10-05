@@ -33,8 +33,8 @@ We will **exclusively use the `preload()` pattern for all custom script referenc
 
 ```gdscript
 # ✅ CORRECT - Preload pattern
-const ProgramScript = preload("res://scripts/core/program.gd")
-const InstructionScript = preload("res://scripts/core/instruction.gd")
+const ProgramScript = preload("res://src/core/program.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
 
 var my_program = ProgramScript.new()
 
@@ -118,7 +118,7 @@ When creating a new script:
 1. **Do not add `class_name`**
 2. **Use `preload()` for dependencies** at the top of the file:
    ```gdscript
-   const DependencyScript = preload("res://scripts/path/to/dependency.gd")
+   const DependencyScript = preload("res://src/path/to/dependency.gd")
    ```
 3. **Avoid type annotations** for custom script parameters
 4. **Use duck typing** for type checks

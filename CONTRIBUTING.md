@@ -12,7 +12,7 @@ Welcome! We're glad you're interested in contributing to Autobot Murderhell. Thi
 
 ```gdscript
 # ✅ CORRECT - Use preload pattern
-const ProgramScript = preload("res://scripts/core/program.gd")
+const ProgramScript = preload("res://src/core/program.gd")
 var my_program = ProgramScript.new()
 
 func my_function(param):  # No type annotations
@@ -128,7 +128,7 @@ Run tests: They should **FAIL** (RED).
 Write the simplest code that makes the test pass.
 
 ```gdscript
-# scripts/core/my_class.gd
+# src/core/my_class.gd
 class_name MyClass
 extends RefCounted
 
@@ -177,7 +177,7 @@ func calculate_damage(base: float, multiplier: float) -> float:
     return base * multiplier
 
 # ✅ CORRECT - No type annotations for custom classes
-const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
+const AndroidEntityScript = preload("res://src/simulation/android_entity.gd")
 
 func process_android(android):  # No type annotation
     if android.has_method("take_damage"):
@@ -230,7 +230,7 @@ func take_damage(damage: float) -> float:
 Organize files by feature, not by type:
 
 ```
-scripts/
+src/
 ├── core/              # Core domain logic
 │   ├── instruction.gd
 │   └── program.gd
@@ -271,12 +271,12 @@ autobot-murderhell/
 │   ├── ui/               # UI scenes
 │   ├── entities/         # Entity scenes (Android, enemies)
 │   └── levels/           # Level scenes
-├── scripts/               # GDScript source files
+├── src/                   # GDScript source files
 │   ├── core/             # Programming Context (Program, Instruction)
 │   ├── simulation/       # Simulation Context (systems, components)
 │   ├── progression/      # Progression Context (upgrades, save/load)
 │   └── services/         # Services (AI translator, persistence)
-├── tests/                 # GdUnit4 test files (mirrors scripts/ structure)
+├── tests/                 # GdUnit4 test files (mirrors src/ structure)
 │   ├── core/
 │   ├── simulation/
 │   └── progression/

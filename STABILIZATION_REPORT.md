@@ -12,7 +12,7 @@ Successfully debugged and stabilized the "Autobot Murderhell" project after the 
 **Problem:** The `_setup_enemy_ai()` function was called but not implemented, causing enemy androids to have no behavior.
 
 **Solution:**
-- Implemented `_setup_enemy_ai()` function in `scripts/simulation/level.gd` (lines 158-189)
+- Implemented `_setup_enemy_ai()` function in `src/simulation/level.gd` (lines 158-189)
 - Creates a default enemy AI program with ATTACK loop
 - Injects movement and combat systems into enemy AI cores
 - Loads and starts the program for each enemy android
@@ -41,7 +41,7 @@ func _setup_enemy_ai() -> void:
 **Problem:** Running a simulation twice caused a "Signal is already connected" error because signals weren't disconnected after the first run.
 
 **Solution:**
-- Implemented `_cleanup_run()` function in `scripts/simulation/simulation_manager.gd` (lines 182-198)
+- Implemented `_cleanup_run()` function in `src/simulation/simulation_manager.gd` (lines 182-198)
 - Disconnects all signals before starting a new run
 - Properly cleans up player android and level instances
 - Refactored `_on_run_started()` to call cleanup first
@@ -114,8 +114,8 @@ Upon inspection, several issues mentioned in the briefing were already resolved 
 
 ## Files Modified
 
-1. `scripts/simulation/level.gd` - Added `_setup_enemy_ai()` function
-2. `scripts/simulation/simulation_manager.gd` - Added `_cleanup_run()`, refactored signal handling
+1. `src/simulation/level.gd` - Added `_setup_enemy_ai()` function
+2. `src/simulation/simulation_manager.gd` - Added `_cleanup_run()`, refactored signal handling
 3. `tests/integration/test_scene_based_gameplay.gd` - **NEW** - Comprehensive integration tests
 
 ## Files Created

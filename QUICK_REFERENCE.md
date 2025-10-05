@@ -55,7 +55,7 @@ godot --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add tests/core/t
 
 7. **Commit with Conventional Commits**
    ```bash
-   git add tests/core/test_my_feature.gd scripts/core/my_class.gd
+   git add tests/core/test_my_feature.gd src/core/my_class.gd
    git commit -m "feat(core): add MyClass with do_something method
 
    - Implements core functionality for X

@@ -127,7 +127,7 @@ Successfully completed Phase 1 (Environment & Collaboration Setup) and Phase 2 (
 
 #### 1. Tutorial System with State Machine
 
-**File:** `scripts/ui/tutorial_system.gd`
+**File:** `src/ui/tutorial_system.gd`
 
 **Architecture:** Implements State Machine pattern (per architectural mandate)
 
@@ -153,7 +153,7 @@ Successfully completed Phase 1 (Environment & Collaboration Setup) and Phase 2 (
 
 #### 2. Upgrade Tree UI
 
-**File:** `scripts/ui/upgrade_tree.gd`
+**File:** `src/ui/upgrade_tree.gd`
 
 **Features:**
 - Resource display (Credits, Data Shards)
@@ -176,7 +176,7 @@ Successfully completed Phase 1 (Environment & Collaboration Setup) and Phase 2 (
 
 #### 3. Code Quality Fix
 
-**File:** `scripts/simulation/level.gd`
+**File:** `src/simulation/level.gd`
 
 **Change:** Removed `class_name Level` declaration
 
@@ -315,12 +315,12 @@ func test_purchase_upgrade_with_sufficient_resources():
   - `.github/workflows/code-quality.yml`
 
 - **Features:** 2 files
-  - `scripts/ui/tutorial_system.gd` (243 lines)
-  - `scripts/ui/upgrade_tree.gd` (359 lines)
+  - `src/ui/tutorial_system.gd` (243 lines)
+  - `src/ui/upgrade_tree.gd` (359 lines)
 
 - **Updates:** 2 files
   - `CONTRIBUTING.md` (enhanced significantly)
-  - `scripts/simulation/level.gd` (removed class_name violation)
+  - `src/simulation/level.gd` (removed class_name violation)
 
 **Total:** 11 files created/modified
 

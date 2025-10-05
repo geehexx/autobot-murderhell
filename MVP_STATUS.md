@@ -5,7 +5,6 @@
 **Branch:** develop
 
 ## 🎯 Core Loop Progress
-
 The MVP focuses on delivering the **Design → Deploy → Analyze → Iterate** loop.
 
 ### ✅ Completed Components
@@ -19,186 +18,41 @@ The MVP focuses on delivering the **Design → Deploy → Analyze → Iterate** 
 
 #### 2. **Programming Context (Design Phase)**
 - [x] `Instruction` class - atomic AI logic unit
-- [x] `Program` class - aggregate root for AI programs
-- [x] Validation system for Programs
-- [x] Block Editor UI (mobile-first design)
-  - Block palette with unlocked blocks
-  - Workspace for program assembly
-  - CPU cost tracking
-  - Basic CRUD operations for instructions
-- [x] Comprehensive test suite (test_instruction.gd, test_program.gd)
-
-#### 3. **AI Translation Service**
-- [x] Visitor pattern implementation for Program translation
-- [x] Executable representation generation
-- [x] Label map building for GOTO instructions
-- [x] Type-specific executor creation (MOVE, ATTACK, GOTO, CONDITION, etc.)
-- [x] Condition evaluation system
-- [x] Memory operation support (READ_MEMORY, WRITE_MEMORY)
-- [x] Full test coverage (test_ai_translation_service.gd)
-
-#### 4. **Simulation Context (Deploy Phase)**
-- [x] `AndroidEntity` - aggregate root for androids
-- [x] `HealthComponent` - health, armor, damage calculation
-- [x] `AICoreComponent` - program execution engine
-- [x] Entity-Component pattern implementation
-- [x] `MovementSystem` - android movement logic
-- [x] `CombatSystem` - combat interactions, enemy detection
-- [x] `SimulationManager` - coordinates simulation systems
-- [x] Test suite (test_health_component.gd)
-
-#### 5. **Progression Context**
-- [x] `PlayerProfile` - aggregate root for player state
-- [x] Resource management (credits, data_shards)
-- [x] Unlock system (blocks, chips)
-- [x] Upgrade tree with cost validation
-- [x] Statistics tracking (runs, success rate, playtime)
-- [x] Level completion system
-- [x] Comprehensive test suite (test_player_profile.gd)
-
-#### 6. **Persistence Service**
-- [x] JSON-based save/load system
-- [x] Backup file mechanism for safety
-- [x] Profile validation
-- [x] Default profile generation
-- [x] Error recovery (fallback to backup)
-- [x] Full test coverage (test_persistence_service.gd)
-
-#### 7. **Debugger UI (Analyze Phase)**
-- [x] Instruction list with current execution highlight
-- [x] Execution state display (variables, memory)
-- [x] Play/Pause/Step controls
-- [x] EventBus integration for real-time updates
-- [x] Mobile-first responsive design
-
-#### 8. **Game Controller**
-- [x] Phase management (Design, Deploy, Analyze, Iterate)
-- [x] Service orchestration
-- [x] Profile loading/saving
-- [x] UI coordination
-
----
-
-## 🔨 Remaining MVP Work
-
-### High Priority
-
-#### 1. **Visual Assets** (Estimated: 2-3 days)
-- [ ] Android sprite (player)
-- [ ] Enemy android sprites
-- [ ] Basic tile set for levels
-- [ ] UI theme (colors, fonts, panel styles)
-- [ ] Block icons for each instruction type
-
-#### 2. **Level System** (Estimated: 2-3 days)
-- [ ] Level scene structure
-- [ ] Static level layouts (hand-crafted for MVP)
-- [ ] Level loading/unloading
-- [ ] Win/lose conditions
-- [ ] Enemy android placement and AI
-- [ ] Tutorial level (Level 1)
-
-#### 3. **Enhanced AI Execution** (Estimated: 1-2 days)
-- [ ] Connect AI instructions to actual systems
-  - MOVE → MovementSystem integration
-  - ATTACK → CombatSystem integration
-  - Sensor reads → proximity detection
-- [ ] Instruction execution timing/delays
-- [ ] Animation triggers from AI execution
-
-#### 4. **Tutorial System** (Estimated: 2-3 days)
-- [ ] Tutorial overlay system
-- [ ] Step-by-step guidance for first program
-- [ ] Progressive disclosure of blocks
-- [ ] First User Journey implementation
-
-#### 5. **Upgrade Tree UI** (Estimated: 1-2 days)
-- [ ] Upgrade tree scene and layout
-- [ ] Node visualization (purchased/locked states)
-- [ ] Purchase confirmation dialog
-- [ ] Integration with PlayerProfile
-
-#### 6. **Polishing & Integration** (Estimated: 2-3 days)
-- [ ] Error dialogs for invalid programs
-- [ ] Success/failure feedback for runs
-- [ ] Reward distribution after level completion
-- [ ] Audio (basic SFX for UI, combat)
-- [ ] Main menu scene
-- [ ] Settings screen (volume, accessibility options)
-
-### Medium Priority
-
-#### 7. **Additional Testing** (Ongoing)
-- [ ] Integration tests using SceneRunner
-- [ ] Behavioral consistency tests for AI execution
-- [ ] Visual regression tests (property-based)
-- [ ] Manual playtesting checklist
-
-#### 8. **Documentation** (Ongoing)
-- [ ] API documentation for all public classes
-- [ ] Architecture diagrams (update from charter)
-- [ ] Player-facing tutorial content
-- [ ] Developer onboarding updates
-
----
-
-## 📊 Test Coverage
-
-| Component | Test Suite | Coverage | Status |
-|-----------|------------|----------|--------|
-| Instruction | test_instruction.gd | 100% | ✅ Complete |
-| Program | test_program.gd | 100% | ✅ Complete |
-| AI Translation | test_ai_translation_service.gd | 95% | ✅ Complete |
-| Health Component | test_health_component.gd | 100% | ✅ Complete |
-| Player Profile | test_player_profile.gd | 100% | ✅ Complete |
-| Persistence | test_persistence_service.gd | 95% | ✅ Complete |
-| AI Core Component | - | 0% | ⚠️ Pending |
-| Movement System | - | 0% | ⚠️ Pending |
-| Combat System | - | 0% | ⚠️ Pending |
-| Block Editor UI | - | 0% | ⚠️ Pending |
-| Debugger UI | - | 0% | ⚠️ Pending |
-
-**Overall Test Coverage:** ~60% (Core domain logic complete, UI/Systems pending)
-
----
-
-## 🏗️ Architecture Overview
-
-### Current Implementation
+{{ ... }}
 
 ```
 autobot-murderhell/
 ├── autoload/
 │   └── event_bus.gd ✅ (Global event system)
-├── scripts/
-│   ├── core/ ✅
-│   │   ├── instruction.gd (Atomic AI instruction)
-│   │   └── program.gd (AI program aggregate)
-│   ├── services/ ✅
-│   │   ├── ai_translation_service.gd (Visitor pattern translator)
-│   │   └── persistence_service.gd (Save/load with backup)
-│   ├── progression/ ✅
-│   │   └── player_profile.gd (Progression aggregate root)
-│   ├── simulation/ (Partial)
-│   │   ├── android_entity.gd ✅
-│   │   ├── components/
-│   │   │   ├── health_component.gd ✅
-│   │   │   └── ai_core_component.gd ✅
-│   │   ├── systems/
-│   │   │   ├── movement_system.gd ✅
-│   │   │   └── combat_system.gd ✅
-│   │   └── simulation_manager.gd ✅
-│   ├── ui/ ✅
-│   │   ├── block_editor.gd (Design phase UI)
-│   │   └── debugger.gd (Analyze phase UI)
-│   ├── game_controller.gd ✅ (Core loop orchestration)
-│   └── main.gd ✅
+├── src/
+├── core/ ✅
+│   ├── instruction.gd (Atomic AI instruction)
+│   └── program.gd (AI program aggregate)
+├── services/ ✅
+│   ├── ai_translation_service.gd (Visitor pattern translator)
+│   └── persistence_service.gd (Save/load with backup)
+├── progression/ ✅
+│   └── player_profile.gd (Progression aggregate root)
+├── simulation/ (Partial)
+│   ├── android_entity.gd ✅
+│   ├── components/
+│   │   ├── health_component.gd ✅
+│   │   └── ai_core_component.gd ✅
+│   ├── systems/
+│   │   ├── movement_system.gd ✅
+│   │   └── combat_system.gd ✅
+│   └── simulation_manager.gd ✅
+├── ui/ ✅
+│   ├── block_editor.gd (Design phase UI)
+│   └── debugger.gd (Analyze phase UI)
+├── game_controller.gd ✅ (Core loop orchestration)
+└── main.gd ✅
 ├── scenes/
 │   ├── ui/
 │   │   ├── block_editor.tscn ✅
 │   │   ├── block_ui.tscn ✅
 │   │   └── debugger.tscn ✅
-│   ├── game_scene.tscn ✅
+{{ ... }}
 │   └── main.tscn ✅
 └── tests/ ✅
     ├── core/ (100% coverage)
@@ -296,13 +150,13 @@ autobot-murderhell/
 | File | Purpose | Status |
 |------|---------|--------|
 | `autoload/event_bus.gd` | Global event communication | ✅ Complete |
-| `scripts/core/program.gd` | AI Program aggregate root | ✅ Complete |
-| `scripts/services/ai_translation_service.gd` | Program translator | ✅ Complete |
-| `scripts/progression/player_profile.gd` | Player progression state | ✅ Complete |
-| `scripts/simulation/android_entity.gd` | Android entity (EC root) | ✅ Complete |
-| `scripts/ui/block_editor.gd` | Design phase UI | ✅ Complete |
-| `scripts/ui/debugger.gd` | Analyze phase UI | ✅ Complete |
-| `scripts/game_controller.gd` | Core loop orchestration | ✅ Complete |
+| `src/core/program.gd` | AI Program aggregate root | ✅ Complete |
+| `src/services/ai_translation_service.gd` | Program translator | ✅ Complete |
+| `src/progression/player_profile.gd` | Player progression state | ✅ Complete |
+| `src/simulation/android_entity.gd` | Android entity (EC root) | ✅ Complete |
+| `src/ui/block_editor.gd` | Design phase UI | ✅ Complete |
+| `src/ui/debugger.gd` | Analyze phase UI | ✅ Complete |
+| `src/game_controller.gd` | Core loop orchestration | ✅ Complete |
 
 ---
 

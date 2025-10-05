@@ -28,7 +28,7 @@ var program: Program = Program.new()
 func load_program(program: Program) -> bool:
 
 # After (WORKING):
-const ProgramScript = preload("res://scripts/core/program.gd")
+const ProgramScript = preload("res://src/core/program.gd")
 var program = ProgramScript.new()
 func load_program(program) -> bool:
 ```
@@ -233,7 +233,7 @@ godot-4 --headless --quit 2>&1 | grep "SCRIPT ERROR"
 When adding new code, **always use this pattern**:
 ```gdscript
 # At top of file
-const MyClassScript = preload("res://scripts/path/to/my_class.gd")
+const MyClassScript = preload("res://src/path/to/my_class.gd")
 
 # In functions - NO type annotations
 func my_function(param):  # ✓ CORRECT
