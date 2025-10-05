@@ -1,16 +1,44 @@
 # Contributing to Autobot Murderhell
 
+Welcome! We're glad you're interested in contributing to Autobot Murderhell. This guide will help you get started with our development workflow, coding standards, and best practices.
+
+## 🚨 Critical: Read This First
+
+**Before writing any code**, you must understand our architectural mandate:
+
+### Preload Pattern Requirement
+
+**This project uses `preload()` exclusively instead of `class_name` for script references.** This is a critical architectural decision documented in `docs/adr/ADR-002-Preload-Pattern.md`.
+
+```gdscript
+# ✅ CORRECT - Use preload pattern
+const ProgramScript = preload("res://scripts/core/program.gd")
+var my_program = ProgramScript.new()
+
+func my_function(param):  # No type annotations
+    return param
+
+# ❌ WRONG - DO NOT use class_name
+class_name MyClass  # NEVER use this
+var my_program: Program = Program.new()  # NEVER use this
+func my_function(param: MyClass) -> MyClass:  # NEVER use this
+```
+
+**Never use `class_name` in any new or refactored code.** This prevents critical "Could not find type in current scope" parse errors.
+
 ## Development Workflow
 
 This project follows **GitFlow** branching model and **Test-Driven Development (TDD)** principles.
 
 ### Branching Model (GitFlow)
 
-- `master`: Production-ready code, tagged with version numbers
-- `develop`: Main development branch, integration point for features
-- `feature/*`: Feature branches, created from `develop`
-- `hotfix/*`: Emergency fixes, created from `master`
-- `release/*`: Release preparation branches
+- `main`: Production-ready code, tagged with version numbers (merges from `release` or `hotfix` only)
+- `develop`: Main development branch, integration point for all features
+- `feature/*`: Feature branches, created from `develop` (e.g., `feature/tutorial-system`)
+- `release/*`: Release preparation branches, created from `develop` for final testing
+- `hotfix/*`: Emergency fixes, created from `main` for critical production bugs
+
+See `docs/adr/ADR-001-GitFlow-Branching-Model.md` for the full rationale.
 
 ### Creating a Feature Branch
 
@@ -23,10 +51,22 @@ git pull origin develop
 git checkout -b feature/my-feature-name
 
 # Work on your feature...
-# When done, merge back to develop
-git checkout develop
-git merge --no-ff feature/my-feature-name
+# Commit frequently with conventional commit messages
+
+# Push your feature branch
+git push -u origin feature/my-feature-name
+
+# Create a Pull Request on GitHub targeting 'develop'
 ```
+
+### Pull Request Process
+
+1. **Keep PRs small and focused** - Each PR should address a single feature or bug
+2. **Write descriptive PR titles** - Follow conventional commit format
+3. **Add a clear description** - Explain what changed and why
+4. **Request at least one review** - All PRs require approval before merging
+5. **Address feedback constructively** - Respond to all comments
+6. **Ensure CI passes** - All tests must pass before merging
 
 ### Commit Message Format
 
@@ -104,36 +144,66 @@ Improve the code design without changing its behavior. Run tests after each chan
 
 ## Code Style
 
-We strictly follow the [Official GDScript Style Guide](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/style_guide.html).
+We strictly follow the [Official GDScript Style Guide](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/style_guide.html) with project-specific adaptations.
 
-### Key Rules
+### Naming Conventions
 
-- **Classes/Nodes**: `PascalCase` (e.g., `AndroidEntity`, `BlockEditor`)
+- **File/Folder Names**: `snake_case` (e.g., `android_entity.gd`, `block_editor.tscn`)
+- **Node Names in Scenes**: `PascalCase` (e.g., `PlayerCharacter`, `HealthBar`)
 - **Functions/Variables**: `snake_case` (e.g., `get_cpu_cost()`, `total_damage`)
 - **Constants**: `CONSTANT_CASE` (e.g., `MAX_HEALTH`, `DEFAULT_CPU_COST`)
 - **Private members**: Prefix with `_` (e.g., `_internal_state`, `_calculate_damage()`)
-- **Static Typing**: Always use static typing
+
+### Type Annotations
+
+**Use static typing for built-in types and @export variables only.** For custom script types, use duck typing or method checks.
 
 ```gdscript
-# Good
+# ✅ CORRECT - Static typing for built-in types
 var health: int = 100
+var position: Vector2 = Vector2.ZERO
+@export var max_speed: float = 200.0
+
 func calculate_damage(base: float, multiplier: float) -> float:
     return base * multiplier
 
-# Bad
-var health = 100  # No type
-func calculate_damage(base, multiplier):  # No types
-    return base * multiplier
+# ✅ CORRECT - No type annotations for custom classes
+const AndroidEntityScript = preload("res://scripts/simulation/android_entity.gd")
+
+func process_android(android):  # No type annotation
+    if android.has_method("take_damage"):
+        android.take_damage(10)
+
+# ❌ WRONG - Don't use class_name type annotations
+func process_android(android: AndroidEntity) -> void:  # WRONG
+    pass
+```
+
+### Type Checking Pattern
+
+Use duck typing instead of `is ClassName`:
+
+```gdscript
+# ✅ CORRECT - Duck typing
+if node.has_method("load_program"):
+    node.load_program(my_program)
+
+# ❌ WRONG - Don't use 'is' with class_name types
+if node is AndroidEntity:  # WRONG
+    node.load_program(my_program)
 ```
 
 ### Documentation
 
-Use doc comments for all public classes, functions, and exports:
+Use doc comments (`##`) for all public scripts, functions, and exports:
 
 ```gdscript
 ## Represents an Android entity in the simulation.
 ## This is the aggregate root for combat and movement operations.
-class_name AndroidEntity
+##
+## Usage:
+##   var android = AndroidEntityScript.new()
+##   android.load_program(my_program)
 extends Node2D
 
 ## The current health of this Android.
@@ -144,6 +214,24 @@ extends Node2D
 func take_damage(damage: float) -> float:
     # Implementation...
     pass
+```
+
+### Project Organization
+
+Organize files by feature, not by type:
+
+```
+scripts/
+├── core/              # Core domain logic
+│   ├── instruction.gd
+│   └── program.gd
+├── simulation/        # Simulation feature
+│   ├── android_entity.gd
+│   ├── components/
+│   └── systems/
+└── services/          # Cross-cutting services
+    ├── ai_translation_service.gd
+    └── persistence_service.gd
 ```
 
 ## Running Tests
@@ -191,15 +279,111 @@ autobot-murderhell/
     └── gdUnit4/          # Testing framework
 ```
 
+## Code Review Guidelines
+
+When reviewing PRs:
+
+1. **Be constructive and respectful** - Focus on the code, not the author
+2. **Ask questions** - "Have you considered...?" vs "You should..."
+3. **Check for patterns** - Verify adherence to preload pattern and architectural standards
+4. **Review scene files visually** - Pull the branch locally to inspect `.tscn` changes in the editor
+5. **Test the changes** - Run the game and tests to verify functionality
+6. **Approve when satisfied** - Use GitHub's approval feature
+
+### What to Look For
+
+- ✅ Preload pattern used correctly (no `class_name`)
+- ✅ Tests written for new features
+- ✅ Naming conventions followed
+- ✅ Documentation updated
+- ✅ No commented-out code or debug prints
+- ✅ Architectural patterns respected (State Machine, Command, etc.)
+
+## Architectural Patterns
+
+This project uses specific design patterns to manage complexity:
+
+### 1. State Machine for Gameplay Loop
+
+The core **Design → Deploy → Analyze → Iterate** loop is managed by a Finite State Machine in `GameController`. When adding phases or transitions, follow this pattern.
+
+### 2. Command Pattern for Player Actions
+
+Player actions in the Design phase (e.g., adding blocks) should be encapsulated as command objects to enable undo/redo functionality in the future.
+
+### 3. Event-Driven Architecture
+
+Use `EventBus` autoload for decoupled communication between systems. Avoid direct dependencies where possible.
+
+```gdscript
+# ✅ CORRECT - Use EventBus
+EventBus.simulation_completed.emit(result)
+
+# ❌ WRONG - Direct coupling
+ui_manager.on_simulation_completed(result)
+```
+
+## Setting Up Development Environment
+
+### Prerequisites
+
+- **Godot 4.3+** (stable)
+- **GdUnit4** plugin (install from Asset Library)
+- **Git** with GitFlow workflow understanding
+
+### First-Time Setup
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd autobot-murderhell
+   ```
+
+2. Check out the develop branch:
+   ```bash
+   git checkout develop
+   ```
+
+3. Open in Godot 4.3+
+
+4. Install GdUnit4:
+   - Project → Tools → Asset Library
+   - Search "GdUnit4"
+   - Download and Install
+
+5. Run tests to verify setup:
+   ```bash
+   godot --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add test --continue
+   ```
+
+All tests should pass ✅
+
 ## Before Submitting a Pull Request
 
-1. ✅ All tests pass
-2. ✅ New code has corresponding tests
-3. ✅ Code follows GDScript style guide
+1. ✅ All tests pass locally
+2. ✅ New code has corresponding tests (TDD)
+3. ✅ Code follows preload pattern and style guide
 4. ✅ Commit messages follow Conventional Commits format
 5. ✅ No debug print statements left in code
 6. ✅ Documentation updated if needed
+7. ✅ Scene changes tested visually in the editor
+8. ✅ PR description explains what changed and why
+
+## Communication
+
+For questions, discussions, and collaboration:
+
+- **GitHub Issues** - Bug reports and feature requests
+- **Pull Request comments** - Code-specific discussions
+- **Discord/Slack** - Real-time team communication (see project channels)
+
+## Additional Resources
+
+- **Architecture Decisions**: See `docs/adr/` for Architectural Decision Records
+- **MVP Status**: See `MVP_STATUS.md` for current development priorities
+- **Testing Results**: See `TESTING_RESULTS.md` for known issues and solutions
+- **Quick Reference**: See `QUICK_REFERENCE.md` for code patterns and examples
 
 ## Questions?
 
-Refer to the **Project Charter** document for architectural decisions and design philosophy.
+Refer to the **Architectural Decision Records** in `docs/adr/` for context on major technical choices.

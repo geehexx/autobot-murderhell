@@ -1,0 +1,105 @@
+name: Code Quality
+
+on:
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  lint:
+    name: Lint and Style Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for class_name usage (FORBIDDEN)
+        run: |
+          echo "🔍 Checking for forbidden class_name usage..."
+          if grep -r "^class_name " scripts/ tests/ 2>/dev/null; then
+            echo "❌ ERROR: Found class_name usage. This is forbidden per ADR-002."
+            echo "Please use the preload pattern instead."
+            echo "See docs/adr/ADR-002-Preload-Pattern.md for details."
+            exit 1
+          fi
+          echo "✅ No forbidden class_name usage found"
+
+      - name: Check for debug prints
+        run: |
+          echo "🔍 Checking for debug print statements..."
+          # Allow prints in test files and specific documented cases
+          if grep -r "print(" scripts/ --include="*.gd" | grep -v "# DEBUG:" | grep -v "test_" 2>/dev/null; then
+            echo "⚠️  WARNING: Found print statements in non-test code."
+            echo "Consider using proper logging or removing debug prints."
+            # Don't fail the build, just warn
+          else
+            echo "✅ No debug prints found"
+          fi
+
+      - name: Check commit message format
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "🔍 Checking commit message format..."
+          # Get PR title
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          
+          # Check if title follows conventional commits format
+          if echo "$PR_TITLE" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\(.+\))?: .+"; then
+            echo "✅ PR title follows Conventional Commits format"
+          else
+            echo "❌ ERROR: PR title must follow Conventional Commits format"
+            echo "Format: <type>[optional scope]: <description>"
+            echo "Example: feat(tutorial): add step-by-step guidance system"
+            echo "See CONTRIBUTING.md for details"
+            exit 1
+          fi
+
+      - name: Check file naming conventions
+        run: |
+          echo "🔍 Checking file naming conventions..."
+          # Check that all .gd and .tscn files use snake_case
+          INVALID_FILES=$(find scripts/ scenes/ -type f \( -name "*.gd" -o -name "*.tscn" \) | grep -v "^[a-z0-9_/]*\.\(gd\|tscn\)$" || true)
+          
+          if [ -n "$INVALID_FILES" ]; then
+            echo "⚠️  WARNING: Some files don't follow snake_case convention:"
+            echo "$INVALID_FILES"
+            echo "See CONTRIBUTING.md for naming conventions"
+          else
+            echo "✅ All files follow naming conventions"
+          fi
+
+  documentation:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for TODOs
+        run: |
+          echo "🔍 Checking for TODO comments..."
+          TODO_COUNT=$(grep -r "TODO\|FIXME\|HACK" scripts/ tests/ --include="*.gd" | wc -l || echo "0")
+          
+          if [ "$TODO_COUNT" -gt 0 ]; then
+            echo "⚠️  Found $TODO_COUNT TODO/FIXME/HACK comments:"
+            grep -rn "TODO\|FIXME\|HACK" scripts/ tests/ --include="*.gd" || true
+            echo ""
+            echo "Consider creating GitHub issues for these items"
+          else
+            echo "✅ No TODO comments found"
+          fi
+
+      - name: Check for documentation comments
+        run: |
+          echo "🔍 Checking for documentation comments..."
+          # Count files with ## doc comments
+          FILES_WITH_DOCS=$(grep -r "^##" scripts/ --include="*.gd" -l | wc -l)
+          TOTAL_FILES=$(find scripts/ -name "*.gd" | wc -l)
+          
+          echo "📊 Documentation coverage: $FILES_WITH_DOCS/$TOTAL_FILES files have doc comments"
+          
+          if [ "$FILES_WITH_DOCS" -lt "$((TOTAL_FILES / 2))" ]; then
+            echo "⚠️  WARNING: Less than 50% of files have documentation comments"
+            echo "Consider adding ## doc comments to public functions and classes"
+          else
+            echo "✅ Good documentation coverage"
+          fi
