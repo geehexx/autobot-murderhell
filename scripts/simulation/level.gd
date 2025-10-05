@@ -62,6 +62,9 @@ func start_level(p_player_android) -> void:
 	# Find all enemy androids
 	_find_enemies()
 	
+	# Give enemies default AI
+	_setup_enemy_ai()
+	
 	print("[Level] Started: %s (Enemies: %d)" % [level_name, enemy_androids.size()])
 
 
@@ -150,3 +153,37 @@ func get_living_enemy_count() -> int:
 		if enemy and enemy.is_alive():
 			count += 1
 	return count
+
+
+## Sets up default AI for enemy androids.
+func _setup_enemy_ai() -> void:
+	# Get systems from SimulationManager
+	var sim_manager = get_parent()
+	if not sim_manager or not sim_manager.has_method("_create_player_android"):
+		push_error("[Level] Cannot setup enemy AI - SimulationManager not found")
+		return
+	
+	# Create a simple default enemy program (stand and attack when player approaches)
+	const ProgramScript = preload("res://scripts/core/program.gd")
+	const InstructionScript = preload("res://scripts/core/instruction.gd")
+	
+	var enemy_program = ProgramScript.new("Enemy AI")
+	enemy_program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "START"}))
+	enemy_program.add_instruction(InstructionScript.new("ATTACK", 3, {}))
+	enemy_program.add_instruction(InstructionScript.new("GOTO", 1, {"label": "START"}))
+	
+	# Load program into each enemy
+	for enemy in enemy_androids:
+		if enemy and enemy.has_method("load_program") and enemy.ai_core:
+			# Inject systems into enemy AI core
+			if sim_manager.movement_system:
+				enemy.ai_core.movement_system = sim_manager.movement_system
+			if sim_manager.combat_system:
+				enemy.ai_core.combat_system = sim_manager.combat_system
+			
+			# Load and start program
+			if enemy.load_program(enemy_program):
+				enemy.start_ai()
+				print("[Level] Enemy '%s' AI initialized" % enemy.android_name)
+			else:
+				push_error("[Level] Failed to load program into enemy '%s'" % enemy.android_name)

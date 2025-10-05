@@ -170,17 +170,24 @@ func _execute_move(android, params: Dictionary) -> void:
 	var direction: String = params.get("direction", "forward")
 	var distance: float = params.get("distance", 50.0)
 	
-	if movement_system:
-		match direction:
-			"forward":
-				movement_system.move_forward(android, distance)
-			_:
-				print("  [AI] Unknown direction: %s" % direction)
-	else:
-		# Fallback: simple movement
-		android.position += Vector2(distance, 0)
+	var movement_vector: Vector2 = Vector2.ZERO
 	
-	print("  [AI] MOVE %s (%f)" % [direction, distance])
+	match direction:
+		"forward":
+			movement_vector = Vector2.RIGHT
+		"backward":
+			movement_vector = Vector2.LEFT
+		"left":
+			movement_vector = Vector2.UP
+		"right":
+			movement_vector = Vector2.DOWN
+		_:
+			print("  [AI] Unknown direction: %s" % direction)
+			return
+	
+	# Apply movement directly to android position
+	android.position += movement_vector * distance
+	print("  [AI] MOVE %s (%f) - new position: %s" % [direction, distance, android.position])
 
 
 ## Executes an ATTACK instruction.

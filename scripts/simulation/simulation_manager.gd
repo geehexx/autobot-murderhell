@@ -49,6 +49,9 @@ func _process(delta: float) -> void:
 func _on_run_started(level_id: String, program) -> void:
 	print("[SimulationManager] Starting run on level: %s" % level_id)
 	
+	# Clean up any previous run state
+	_cleanup_run()
+	
 	# Load level
 	_load_level(level_id)
 	
@@ -106,10 +109,16 @@ func _create_player_android(program) -> void:
 	
 	add_child(player_android)
 	
+	# Wait for _ready() to complete so components exist
+	await get_tree().process_frame
+	
 	# Inject systems into AI core
 	if player_android.ai_core:
 		player_android.ai_core.movement_system = movement_system
 		player_android.ai_core.combat_system = combat_system
+		print("[SimulationManager] Systems injected into player AI core")
+	else:
+		push_error("[SimulationManager] Player android has no AI core!")
 	
 	# Load program
 	var success: bool = player_android.load_program(program)
@@ -122,16 +131,7 @@ func _create_player_android(program) -> void:
 
 ## Stops the current run.
 func stop_run() -> void:
-	is_running = false
-	
-	if player_android:
-		player_android.queue_free()
-		player_android = null
-	
-	if current_level:
-		current_level.queue_free()
-		current_level = null
-	
+	_cleanup_run()
 	EventBus.run_ended.emit({"success": false, "stopped": true})
 
 
@@ -167,3 +167,23 @@ func _on_android_destroyed(android: Node) -> void:
 	if android == player_android:
 		print("[SimulationManager] Player android destroyed!")
 		# Level will handle the lose condition
+
+
+## Cleans up state from previous run.
+func _cleanup_run() -> void:
+	# Disconnect signals if connected
+	if EventBus.android_destroyed.is_connected(_on_android_destroyed):
+		EventBus.android_destroyed.disconnect(_on_android_destroyed)
+	
+	# Clean up previous player android
+	if player_android:
+		player_android.queue_free()
+		player_android = null
+	
+	# Clean up previous level
+	if current_level:
+		current_level.queue_free()
+		current_level = null
+	
+	is_running = false
+	print("[SimulationManager] Previous run state cleaned up")

@@ -9,10 +9,10 @@ const HealthComponentScript = preload("res://scripts/simulation/components/healt
 const AICoreComponentScript = preload("res://scripts/simulation/components/ai_core_component.gd")
 
 ## Reference to the HealthComponent.
-@onready var health_component = $HealthComponent
+var health_component = null
 
 ## Reference to the AICoreComponent.
-@onready var ai_core = $AICoreComponent
+var ai_core = null
 
 ## The Android's display name.
 @export var android_name: String = "Android"
@@ -22,18 +22,22 @@ const AICoreComponentScript = preload("res://scripts/simulation/components/ai_co
 
 
 func _ready() -> void:
-	# Ensure components exist
+	# Create components
 	if not has_node("HealthComponent"):
 		var health = HealthComponentScript.new()
 		health.name = "HealthComponent"
 		add_child(health)
 		health_component = health
+	else:
+		health_component = get_node("HealthComponent")
 	
 	if not has_node("AICoreComponent"):
 		var ai = AICoreComponentScript.new()
 		ai.name = "AICoreComponent"
 		add_child(ai)
 		ai_core = ai
+	else:
+		ai_core = get_node("AICoreComponent")
 	
 	print("[AndroidEntity] '%s' initialized (Faction: %s)" % [android_name, faction])
 

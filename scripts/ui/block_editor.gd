@@ -117,9 +117,13 @@ func _update_program_display() -> void:
 
 ## Creates a UI element for an instruction.
 func _create_instruction_ui(instruction, index: int) -> Control:
+	var vbox: VBoxContainer = VBoxContainer.new()
+	
+	# Top row: instruction info and controls
 	var panel: PanelContainer = PanelContainer.new()
 	var hbox: HBoxContainer = HBoxContainer.new()
 	panel.add_child(hbox)
+	vbox.add_child(panel)
 	
 	# Index label
 	var index_label: Label = Label.new()
@@ -145,7 +149,179 @@ func _create_instruction_ui(instruction, index: int) -> Control:
 	delete_button.pressed.connect(_on_delete_instruction_pressed.bind(index))
 	hbox.add_child(delete_button)
 	
-	return panel
+	# Add parameter editors based on instruction type
+	var param_ui = _create_parameter_ui(instruction, index)
+	if param_ui:
+		vbox.add_child(param_ui)
+	
+	return vbox
+
+
+## Creates parameter editing UI for an instruction
+func _create_parameter_ui(instruction, index: int):
+	match instruction.type:
+		"MOVE":
+			return _create_move_params(instruction, index)
+		"GOTO":
+			return _create_goto_params(instruction, index)
+		"LABEL":
+			return _create_label_params(instruction, index)
+		"CONDITION":
+			return _create_condition_params(instruction, index)
+		_:
+			return null
+
+
+## Creates MOVE parameter UI
+func _create_move_params(instruction, index: int) -> Control:
+	var hbox = HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 10)
+	
+	# Direction dropdown
+	var direction_label = Label.new()
+	direction_label.text = "Direction:"
+	hbox.add_child(direction_label)
+	
+	var direction_option = OptionButton.new()
+	direction_option.add_item("forward", 0)
+	direction_option.add_item("backward", 1)
+	direction_option.add_item("left", 2)
+	direction_option.add_item("right", 3)
+	
+	var current_dir = instruction.parameters.get("direction", "forward")
+	match current_dir:
+		"forward": direction_option.selected = 0
+		"backward": direction_option.selected = 1
+		"left": direction_option.selected = 2
+		"right": direction_option.selected = 3
+	
+	direction_option.item_selected.connect(func(idx):
+		var dirs = ["forward", "backward", "left", "right"]
+		instruction.parameters["direction"] = dirs[idx]
+		EventBus.program_edited.emit(current_program)
+	)
+	hbox.add_child(direction_option)
+	
+	# Distance input
+	var distance_label = Label.new()
+	distance_label.text = "Distance:"
+	hbox.add_child(distance_label)
+	
+	var distance_spin = SpinBox.new()
+	distance_spin.min_value = 1.0
+	distance_spin.max_value = 500.0
+	distance_spin.step = 10.0
+	distance_spin.value = instruction.parameters.get("distance", 50.0)
+	distance_spin.value_changed.connect(func(value):
+		instruction.parameters["distance"] = value
+		EventBus.program_edited.emit(current_program)
+	)
+	hbox.add_child(distance_spin)
+	
+	return hbox
+
+
+## Creates GOTO parameter UI
+func _create_goto_params(instruction, index: int) -> Control:
+	var hbox = HBoxContainer.new()
+	
+	var label = Label.new()
+	label.text = "Jump to label:"
+	hbox.add_child(label)
+	
+	var line_edit = LineEdit.new()
+	line_edit.text = instruction.parameters.get("label", "START")
+	line_edit.custom_minimum_size = Vector2(150, 0)
+	line_edit.text_changed.connect(func(new_text):
+		instruction.parameters["label"] = new_text
+		EventBus.program_edited.emit(current_program)
+	)
+	hbox.add_child(line_edit)
+	
+	return hbox
+
+
+## Creates LABEL parameter UI
+func _create_label_params(instruction, index: int) -> Control:
+	var hbox = HBoxContainer.new()
+	
+	var label = Label.new()
+	label.text = "Label name:"
+	hbox.add_child(label)
+	
+	var line_edit = LineEdit.new()
+	line_edit.text = instruction.parameters.get("name", "START")
+	line_edit.custom_minimum_size = Vector2(150, 0)
+	line_edit.text_changed.connect(func(new_text):
+		instruction.parameters["name"] = new_text
+		EventBus.program_edited.emit(current_program)
+	)
+	hbox.add_child(line_edit)
+	
+	return hbox
+
+
+## Creates CONDITION parameter UI
+func _create_condition_params(instruction, index: int) -> Control:
+	var vbox = VBoxContainer.new()
+	
+	# Condition type dropdown
+	var type_hbox = HBoxContainer.new()
+	var type_label = Label.new()
+	type_label.text = "Condition:"
+	type_hbox.add_child(type_label)
+	
+	var type_option = OptionButton.new()
+	type_option.add_item("IS_HEALTH_LOW", 0)
+	type_option.add_item("IS_ENEMY_NEARBY", 1)
+	type_option.add_item("IS_ENEMY_IN_RANGE", 2)
+	
+	var current_type = instruction.parameters.get("condition_type", "IS_HEALTH_LOW")
+	match current_type:
+		"IS_HEALTH_LOW": type_option.selected = 0
+		"IS_ENEMY_NEARBY": type_option.selected = 1
+		"IS_ENEMY_IN_RANGE": type_option.selected = 2
+	
+	type_option.item_selected.connect(func(idx):
+		var types = ["IS_HEALTH_LOW", "IS_ENEMY_NEARBY", "IS_ENEMY_IN_RANGE"]
+		instruction.parameters["condition_type"] = types[idx]
+		EventBus.program_edited.emit(current_program)
+	)
+	type_hbox.add_child(type_option)
+	vbox.add_child(type_hbox)
+	
+	# Jump targets
+	var true_hbox = HBoxContainer.new()
+	var true_label = Label.new()
+	true_label.text = "If true, jump to:"
+	true_hbox.add_child(true_label)
+	
+	var true_edit = LineEdit.new()
+	true_edit.text = instruction.parameters.get("jump_if_true", "")
+	true_edit.custom_minimum_size = Vector2(100, 0)
+	true_edit.text_changed.connect(func(new_text):
+		instruction.parameters["jump_if_true"] = new_text
+		EventBus.program_edited.emit(current_program)
+	)
+	true_hbox.add_child(true_edit)
+	vbox.add_child(true_hbox)
+	
+	var false_hbox = HBoxContainer.new()
+	var false_label = Label.new()
+	false_label.text = "If false, jump to:"
+	false_hbox.add_child(false_label)
+	
+	var false_edit = LineEdit.new()
+	false_edit.text = instruction.parameters.get("jump_if_false", "")
+	false_edit.custom_minimum_size = Vector2(100, 0)
+	false_edit.text_changed.connect(func(new_text):
+		instruction.parameters["jump_if_false"] = new_text
+		EventBus.program_edited.emit(current_program)
+	)
+	false_hbox.add_child(false_edit)
+	vbox.add_child(false_hbox)
+	
+	return vbox
 
 
 ## Updates the CPU cost display.

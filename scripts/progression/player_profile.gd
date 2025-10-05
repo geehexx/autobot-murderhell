@@ -46,7 +46,7 @@ func _init() -> void:
 ## Initializes default values for a new profile.
 func _initialize_defaults() -> void:
 	# Start with basic instruction blocks
-	unlocked_blocks = ["MOVE", "GOTO", "LABEL"]
+	unlocked_blocks = ["MOVE", "ATTACK", "SCAN", "GOTO", "LABEL", "CONDITION"]
 	resources = {"credits": 0, "data_shards": 0}
 
 
