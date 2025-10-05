@@ -28,20 +28,18 @@ git submodule add https://github.com/MikeSchulze/gdUnit4.git addons/gdUnit4
 git submodule update --init --recursive
 ```
 
-## Verifying Installation
+### Preventing `--check-only` hangs
 
-Run the smoke test to verify core systems:
+Godot will **hang indefinitely** if the startup scene never calls `SceneTree.quit()` while running in `--check-only` mode. We fixed this by adding `_maybe_quit_for_headless_check()` in `scripts/game_controller.gd`, which detects the CLI flag and defers a quit. If you add new entry points, make sure they also honor `--check-only`.
+
+To guarantee the check exits during CI, use `tools/run_godot_checks.sh` (added in this repo) or wrap the command with `timeout` locally:
 
 ```bash
-godot-4 --script smoke_test.gd --headless --quit-timeout 5
+GDT=$(command -v godot4 || command -v /snap/bin/godot4)
+timeout 40s "$GDT" --headless --path . --check-only
 ```
 
-Expected output:
-```
-========== SMOKE TEST START ==========
-✓ ALL TESTS PASSED
-========================================
-```
+If the command times out, inspect startup scripts for missing quit handlers.
 
 ## Running Tests
 

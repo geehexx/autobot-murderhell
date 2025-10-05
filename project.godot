@@ -14,39 +14,45 @@ config/name="Autobot Murderhell"
 config/description="A visual programming dungeon crawler where players program their android's AI"
 config/version="0.1.0"
 run/main_scene="res://scenes/game_scene.tscn"
-config/features=PackedStringArray("4.3", "Mobile")
+config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
 EventBus="*res://autoload/event_bus.gd"
 
-[display]
-
-window/size/viewport_width=720
-window/size/viewport_height=1280
-window/size/mode=2
-window/size/resizable=true
-window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
-window/handheld/orientation=1
-
-[rendering]
-
-renderer/rendering_method="mobile"
-renderer/rendering_method.mobile="forward_plus"
-textures/vram_compression/import_etc2_astc=true
-
-[input_devices]
-
-pointing/emulate_touch_from_mouse=true
-
 [debug]
 
-gdscript/warnings/enable=true
 gdscript/warnings/untyped_declaration=1
 gdscript/warnings/inferred_declaration=1
 gdscript/warnings/unsafe_property_access=1
 gdscript/warnings/unsafe_method_access=1
 gdscript/warnings/unsafe_cast=1
 gdscript/warnings/unsafe_call_argument=1
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/mode=2
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")
+
+[gdunit4]
+
+settings/test/test_timeout_seconds=30
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="forward_plus"
+textures/vram_compression/import_etc2_astc=true

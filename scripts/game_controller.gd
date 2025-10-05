@@ -50,6 +50,7 @@ func _ready() -> void:
 	_setup_ui()
 	
 	print("[GameController] Initialized in DESIGN phase")
+	_maybe_quit_for_headless_check()
 
 
 ## Sets up UI with player profile.
@@ -91,3 +92,16 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		# Save on exit
 		save_game()
+
+
+func _maybe_quit_for_headless_check() -> void:
+	var args: PackedStringArray = OS.get_cmdline_args()
+	if "--check-only" in args:
+		print("[GameController] --check-only detected, scheduling exit.")
+		call_deferred("_quit_after_startup")
+
+
+func _quit_after_startup() -> void:
+	var tree := get_tree()
+	if tree:
+		tree.quit()

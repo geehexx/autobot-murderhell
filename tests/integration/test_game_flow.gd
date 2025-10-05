@@ -2,6 +2,11 @@
 ## Tests the complete user workflow from program creation to execution.
 extends GdUnitTestSuite
 
+
+var suite_attributes := {
+    "timeout": 10000
+}
+
 # Preload required scripts
 const ProgramScript = preload("res://scripts/core/program.gd")
 const InstructionScript = preload("res://scripts/core/instruction.gd")
