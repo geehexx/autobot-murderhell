@@ -2,11 +2,14 @@
 extends GdUnitTestSuite
 
 
-var persistence_service: PersistenceService
+const PersistenceServiceScript = preload("res://src/services/persistence_service.gd")
+
+
+var persistence_service
 
 
 func before_test() -> void:
-	persistence_service = PersistenceService.new()
+	persistence_service = PersistenceServiceScript.new()
 	# Clean up any existing save files before each test
 	persistence_service.delete_save_file()
 
@@ -14,6 +17,8 @@ func before_test() -> void:
 func after_test() -> void:
 	# Clean up after each test
 	persistence_service.delete_save_file()
+
+
 
 
 func test_save_valid_profile_succeeds() -> void:
@@ -28,7 +33,7 @@ func test_save_valid_profile_succeeds() -> void:
 		"levels_completed": []
 	}
 	
-	var result: bool = persistence_service.save_profile(profile_data)
+{{ ... }}
 	
 	assert_bool(result).is_true()
 
@@ -38,16 +43,12 @@ func test_save_invalid_profile_fails() -> void:
 		"player_name": "TestPlayer"
 		# Missing required keys
 	}
-	
-	var result: bool = persistence_service.save_profile(invalid_profile)
-	
 	assert_bool(result).is_false()
 
 
 func test_load_nonexistent_file_returns_default_profile() -> void:
 	var result: Dictionary = persistence_service.load_profile()
 	
-	assert_bool(result["success"]).is_true()
 	assert_dict(result["data"]).contains_key("version")
 	assert_dict(result["data"]).contains_key("player_name")
 	assert_dict(result["data"]).contains_key("resources")

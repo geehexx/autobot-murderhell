@@ -3,11 +3,16 @@
 extends GdUnitTestSuite
 
 
-var translation_service: AITranslationService
+const TranslationServiceScript = preload("res://src/services/ai_translation_service.gd")
+const ProgramScript = preload("res://src/core/program.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
+
+
+var translation_service
 
 
 func before_test() -> void:
-	translation_service = AITranslationService.new()
+	translation_service = TranslationServiceScript.new()
 
 
 func test_translate_null_program_returns_error() -> void:
@@ -18,7 +23,7 @@ func test_translate_null_program_returns_error() -> void:
 
 
 func test_translate_invalid_program_returns_error() -> void:
-	var program: Program = Program.new()
+	var program = ProgramScript.new()
 	# Empty program is invalid
 	
 	var result: Dictionary = translation_service.translate_program(program)
@@ -27,9 +32,9 @@ func test_translate_invalid_program_returns_error() -> void:
 
 
 func test_translate_simple_program_succeeds() -> void:
-	var program: Program = Program.new("Simple Program")
-	program.add_instruction(Instruction.new("MOVE", 1, {"direction": "forward"}))
-	program.add_instruction(Instruction.new("ATTACK", 2))
+	var program = ProgramScript.new("Simple Program")
+	program.add_instruction(InstructionScript.new("MOVE", 1, {"direction": "forward"}))
+	program.add_instruction(InstructionScript.new("ATTACK", 2))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
@@ -40,11 +45,11 @@ func test_translate_simple_program_succeeds() -> void:
 
 
 func test_translate_builds_label_map() -> void:
-	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("LABEL", 0, {"name": "START"}))
-	program.add_instruction(Instruction.new("MOVE", 1))
-	program.add_instruction(Instruction.new("LABEL", 0, {"name": "LOOP"}))
-	program.add_instruction(Instruction.new("ATTACK", 2))
+	var program = ProgramScript.new()
+	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "START"}))
+	program.add_instruction(InstructionScript.new("MOVE", 1))
+	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "LOOP"}))
+	program.add_instruction(InstructionScript.new("ATTACK", 2))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
@@ -54,9 +59,9 @@ func test_translate_builds_label_map() -> void:
 
 
 func test_translate_goto_instruction() -> void:
-	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("LABEL", 0, {"name": "START"}))
-	program.add_instruction(Instruction.new("GOTO", 1, {"label": "START"}))
+	var program = ProgramScript.new()
+	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "START"}))
+	program.add_instruction(InstructionScript.new("GOTO", 1, {"label": "START"}))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
@@ -66,8 +71,8 @@ func test_translate_goto_instruction() -> void:
 
 
 func test_translated_instruction_has_execute_callback() -> void:
-	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("MOVE", 1))
+	var program = ProgramScript.new()
+	program.add_instruction(InstructionScript.new("MOVE", 1))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
@@ -76,8 +81,8 @@ func test_translated_instruction_has_execute_callback() -> void:
 
 
 func test_translated_instruction_preserves_metadata() -> void:
-	var program: Program = Program.new()
-	var instruction: Instruction = Instruction.new("MOVE", 3, {"direction": "left"}, "MOVE_123")
+	var program = ProgramScript.new()
+	var instruction = InstructionScript.new("MOVE", 3, {"direction": "left"}, "MOVE_123")
 	program.add_instruction(instruction)
 	
 	var result: Dictionary = translation_service.translate_program(program)
@@ -90,9 +95,9 @@ func test_translated_instruction_preserves_metadata() -> void:
 
 
 func test_translate_memory_operations() -> void:
-	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("WRITE_MEMORY", 1, {"cell_index": 0, "value_source": "temp"}))
-	program.add_instruction(Instruction.new("READ_MEMORY", 1, {"cell_index": 0, "store_in": "result"}))
+	var program = ProgramScript.new()
+	program.add_instruction(InstructionScript.new("WRITE_MEMORY", 1, {"cell_index": 0, "value_source": "temp"}))
+	program.add_instruction(InstructionScript.new("READ_MEMORY", 1, {"cell_index": 0, "store_in": "result"}))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
@@ -103,9 +108,9 @@ func test_translate_memory_operations() -> void:
 
 
 func test_translate_condition_instruction() -> void:
-	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("LABEL", 0, {"name": "RETREAT"}))
-	program.add_instruction(Instruction.new("CONDITION", 2, {
+	var program = ProgramScript.new()
+	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "RETREAT"}))
+	program.add_instruction(InstructionScript.new("CONDITION", 2, {
 		"condition_type": "IS_HEALTH_LOW",
 		"jump_if_true": "RETREAT",
 		"jump_if_false": ""
@@ -119,8 +124,8 @@ func test_translate_condition_instruction() -> void:
 
 
 func test_translate_unknown_instruction_type() -> void:
-	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("UNKNOWN_TYPE", 1))
+	var program = ProgramScript.new()
+	program.add_instruction(InstructionScript.new("UNKNOWN_TYPE", 1))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
@@ -130,8 +135,8 @@ func test_translate_unknown_instruction_type() -> void:
 
 
 func test_translate_emits_event_on_success() -> void:
-	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("MOVE", 1))
+	var program = ProgramScript.new()
+	program.add_instruction(InstructionScript.new("MOVE", 1))
 	
 	var signal_emitted: bool = false
 	var signal_handler: Callable = func(_exec: Dictionary) -> void:

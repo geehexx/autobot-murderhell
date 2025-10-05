@@ -3,8 +3,12 @@
 extends GdUnitTestSuite
 
 
+const ProgramScript = preload("res://src/core/program.gd")
+const InstructionScript = preload("res://src/core/instruction.gd")
+
+
 func test_program_creation_with_defaults() -> void:
-	var program: Program = Program.new()
+	var program = ProgramScript.new()
 	
 	assert_str(program.program_name).is_equal("Untitled Program")
 	assert_array(program.instructions).is_empty()
@@ -13,15 +17,15 @@ func test_program_creation_with_defaults() -> void:
 
 
 func test_program_creation_with_parameters() -> void:
-	var program: Program = Program.new("Test Program", 150)
+	var program = ProgramScript.new("Test Program", 150)
 	
 	assert_str(program.program_name).is_equal("Test Program")
 	assert_int(program.cpu_budget_per_tick).is_equal(150)
 
 
 func test_add_valid_instruction() -> void:
-	var program: Program = Program.new()
-	var instruction: Instruction = Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 10})
+	var program = ProgramScript.new()
+	var instruction = InstructionScript.new("SET_VARIABLE", -1, {"target": "speed", "value": 10})
 	
 	program.add_instruction(instruction)
 	
@@ -30,8 +34,8 @@ func test_add_valid_instruction() -> void:
 
 
 func test_add_invalid_instruction_is_ignored() -> void:
-	var program: Program = Program.new()
-	var invalid_instruction: Instruction = Instruction.new("", 0)
+	var program = ProgramScript.new()
+	var invalid_instruction = InstructionScript.new("", 0)
 	
 	program.add_instruction(invalid_instruction)
 	
@@ -39,9 +43,9 @@ func test_add_invalid_instruction_is_ignored() -> void:
 
 
 func test_insert_instruction_at_beginning() -> void:
-	var program: Program = Program.new()
-	var instruction1: Instruction = Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}, "I1")
-	var instruction2: Instruction = Instruction.new("DEBUG_LOG", 0, {"message": "Start"}, "I2")
+	var program = ProgramScript.new()
+	var instruction1 = InstructionScript.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}, "I1")
+	var instruction2 = InstructionScript.new("DEBUG_LOG", 0, {"message": "Start"}, "I2")
 	
 	program.add_instruction(instruction1)
 	program.insert_instruction(instruction2, 0)
@@ -52,9 +56,9 @@ func test_insert_instruction_at_beginning() -> void:
 
 
 func test_insert_instruction_at_end() -> void:
-	var program: Program = Program.new()
-	var instruction1: Instruction = Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}, "I1")
-	var instruction2: Instruction = Instruction.new("DEBUG_LOG", 0, {"message": "Done"}, "I2")
+	var program = ProgramScript.new()
+	var instruction1 = InstructionScript.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}, "I1")
+	var instruction2 = InstructionScript.new("DEBUG_LOG", 0, {"message": "Done"}, "I2")
 	
 	program.add_instruction(instruction1)
 	program.insert_instruction(instruction2, 1)
@@ -64,8 +68,8 @@ func test_insert_instruction_at_end() -> void:
 
 
 func test_remove_instruction_at_valid_index() -> void:
-	var program: Program = Program.new()
-	var instruction: Instruction = Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5})
+	var program = ProgramScript.new()
+	var instruction = InstructionScript.new("SET_VARIABLE", -1, {"target": "speed", "value": 5})
 	program.add_instruction(instruction)
 	
 	var result: bool = program.remove_instruction(0)
@@ -75,7 +79,7 @@ func test_remove_instruction_at_valid_index() -> void:
 
 
 func test_remove_instruction_at_invalid_index() -> void:
-	var program: Program = Program.new()
+	var program = ProgramScript.new()
 	
 	var result: bool = program.remove_instruction(0)
 	
@@ -83,10 +87,10 @@ func test_remove_instruction_at_invalid_index() -> void:
 
 
 func test_get_total_cpu_cost() -> void:
-	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}))
-	program.add_instruction(Instruction.new("JUMP_IF", -1, {"condition": "true", "target_label": "LOOP"}))
-	program.add_instruction(Instruction.new("FIRE_WEAPON", 2))
+	var program = ProgramScript.new()
+	program.add_instruction(InstructionScript.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}))
+	program.add_instruction(InstructionScript.new("JUMP_IF", -1, {"condition": "true", "target_label": "LOOP"}))
+	program.add_instruction(InstructionScript.new("FIRE_WEAPON", 2))
 	
 	var total_cost: int = program.get_total_cpu_cost()
 	
@@ -94,7 +98,7 @@ func test_get_total_cpu_cost() -> void:
 
 
 func test_get_total_cpu_cost_empty_program() -> void:
-	var program: Program = Program.new()
+	var program = ProgramScript.new()
 	
 	var total_cost: int = program.get_total_cpu_cost()
 	
@@ -102,7 +106,7 @@ func test_get_total_cpu_cost_empty_program() -> void:
 
 
 func test_validate_empty_program_is_invalid() -> void:
-	var program: Program = Program.new()
+	var program = ProgramScript.new()
 	
 	var result: Dictionary = program.validate()
 	
@@ -111,9 +115,9 @@ func test_validate_empty_program_is_invalid() -> void:
 
 
 func test_validate_program_with_valid_instructions() -> void:
-	var program: Program = Program.new()
-	program.add_instruction(Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 10}))
-	program.add_instruction(Instruction.new("DEBUG_LOG", 0, {"message": "Done"}))
+	var program = ProgramScript.new()
+	program.add_instruction(InstructionScript.new("SET_VARIABLE", -1, {"target": "speed", "value": 10}))
+	program.add_instruction(InstructionScript.new("DEBUG_LOG", 0, {"message": "Done"}))
 	
 	var result: Dictionary = program.validate()
 	
@@ -122,9 +126,9 @@ func test_validate_program_with_valid_instructions() -> void:
 
 
 func test_validate_program_with_invalid_instruction() -> void:
-	var program: Program = Program.new()
-	var valid: Instruction = Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 10})
-	var invalid: Instruction = Instruction.new("", 0)
+	var program = ProgramScript.new()
+	var valid = InstructionScript.new("SET_VARIABLE", -1, {"target": "speed", "value": 10})
+	var invalid = InstructionScript.new("", 0)
 	
 	# Manually add invalid instruction (bypassing add_instruction validation)
 	program.instructions.append(valid)
@@ -137,8 +141,8 @@ func test_validate_program_with_invalid_instruction() -> void:
 
 
 func test_validate_jump_if_with_missing_label() -> void:
-	var program: Program = Program.new()
-	var jump_instruction: Instruction = Instruction.new("JUMP_IF", -1, {"condition": "true", "target_label": "START"})
+	var program = ProgramScript.new()
+	var jump_instruction = InstructionScript.new("JUMP_IF", -1, {"condition": "true", "target_label": "START"})
 	program.add_instruction(jump_instruction)
 	
 	var result: Dictionary = program.validate()
@@ -148,9 +152,9 @@ func test_validate_jump_if_with_missing_label() -> void:
 
 
 func test_validate_jump_if_with_existing_label() -> void:
-	var program: Program = Program.new()
-	var label: Instruction = Instruction.new("LABEL", 0, {"name": "START"})
-	var jump_instruction: Instruction = Instruction.new("JUMP_IF", -1, {"condition": "true", "target_label": "START"})
+	var program = ProgramScript.new()
+	var label = InstructionScript.new("LABEL", 0, {"name": "START"})
+	var jump_instruction = InstructionScript.new("JUMP_IF", -1, {"condition": "true", "target_label": "START"})
 	
 	program.add_instruction(label)
 	program.add_instruction(jump_instruction)
@@ -161,11 +165,11 @@ func test_validate_jump_if_with_existing_label() -> void:
 
 
 func test_duplicate_program_creates_independent_copy() -> void:
-	var original: Program = Program.new("Original", 120)
-	original.add_instruction(Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}))
+	var original = ProgramScript.new("Original", 120)
+	original.add_instruction(InstructionScript.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}))
 	original.blackboard_defaults = {"speed": 5}
 	
-	var copy: Program = original.duplicate_program()
+	var copy = original.duplicate_program()
 	
 	# Verify same values
 	assert_str(copy.program_name).is_equal("Original")
@@ -182,8 +186,8 @@ func test_duplicate_program_creates_independent_copy() -> void:
 
 
 func test_program_get_description_contains_key_information() -> void:
-	var program: Program = Program.new("Test Program", 120)
-	program.add_instruction(Instruction.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}))
+	var program = ProgramScript.new("Test Program", 120)
+	program.add_instruction(InstructionScript.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}))
 	
 	var result: String = program.get_description()
 	
