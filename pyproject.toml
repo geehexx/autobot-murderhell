@@ -1,0 +1,10 @@
+[tool.gdformat]
+max_line_length = 100
+
+[tool.gdlint]
+function_name = "_?[a-z_][a-z0-9_]*"
+variable_name = "_?[a-z_][a-z0-9_]*"
+signal_name = "[a-z_][a-z0-9_]*"
+constant_name = "[A-Z_][A-Z0-9_]*"
+max_file_lines = 1000
+disable = ["class-name-missing-extend"]

@@ -2,8 +2,9 @@
 
 ## Prerequisites
 
-- **Godot 4.3+** installed and accessible via command line
-- **GdUnit4** plugin (must be installed manually)
+- **Godot 4.5+** installed and accessible via command line (`/snap/bin/godot4` validated)
+- **GdUnit4** plugin (bundled as git submodule under `addons/gdUnit4/`)
+- **tools/run_godot_checks.sh** executable (for headless smoke + lint wrapper)
 
 ## Installing GdUnit4
 
@@ -47,61 +48,52 @@ If the command times out, inspect startup scripts for missing quit handlers.
 
 1. Open project in Godot
 2. Go to `Project → Tools → GdUnit4`
-3. Select `Run All Tests` or choose specific test suites
+3. Select `Run All Tests` or choose specific suites (core/program, services/ai_translation_service, progression/player_profile)
 
 ### Via Command Line
 
 ```bash
-# Run all tests
-godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add test --continue
+# Execute core regression matrix (ADR-003 compliant suites)
+/snap/bin/godot4 --headless --path . \
+  --script addons/gdUnit4/bin/GdUnitCmdTool.gd \
+  --add tests/core/test_program.gd \
+  --add tests/services/test_ai_translation_service.gd \
+  --add tests/progression/test_player_profile.gd \
+  --ignoreHeadlessMode
 
-# Run specific test suite
-godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add tests/core/test_program.gd
+# Smoke test (headless)
+/snap/bin/godot4 --headless --path . --script smoke_test.gd --quit-timeout 5
 
-# Run with detailed output
-godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add test --continue --verbose
+# Headless integrity + lint helper
+tools/run_godot_checks.sh
 ```
 
 ## Current Test Status
 
-### ✅ Working Tests
+### ✅ ADR-003 Regression Suites
 
-The smoke test (`smoke_test.gd`) validates core functionality:
-- Program creation
-- Instruction validation
-- Control flow (LABEL/GOTO)
-- CPU cost calculation
-- Program duplication
+- `tests/core/test_program.gd` — validates ADR-003 instruction definitions, label mapping, and CPU budgeting.
+- `tests/services/test_ai_translation_service.gd` — confirms EventBus override pipeline emits `translation_completed` signal.
+- `tests/progression/test_player_profile.gd` — verifies progression persistence stores ADR-003 unlock metadata.
 
-### ✅ Tests Updated for Preload Pattern
+### ✅ Smoke Coverage
 
-All legacy suites have been refactored to use the ADR-002 preload pattern. Key updates include:
-- `tests/core/test_program.gd`
-- `tests/core/test_instruction.gd`
-- `tests/services/test_ai_translation_service.gd`
-- `tests/services/test_persistence_service.gd`
-- `tests/progression/test_player_profile.gd`
-- `tests/simulation/test_health_component.gd`
+- `smoke_test.gd` — headless sanity check for instruction registration, translation service wiring, and startup logging.
+- `tools/run_godot_checks.sh` — wraps `--check-only`, GdUnit, and lint invocations for CI parity.
 
-Remaining suites (e.g., `tests/ui/test_game_flow.gd`, `tests/simulation/test_level.gd`) already followed the required pattern.
+### 🚧 Pending Expansion (Unit 4)
 
-> **Next action:** Install GdUnit4 and execute the suites below to confirm parity after the refactor.
-
-```bash
-# After installing GdUnit4, run targeted suites
-godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add tests/core/test_program.gd
-godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add tests/services/test_ai_translation_service.gd
-godot-4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd --add tests/simulation/test_health_component.gd
-```
+- `tests/ui/test_tutorial_system.gd` — placeholder suite to be populated during Phase 2 tooling.
+- `tests/simulation/test_ai_core_component.gd` — forthcoming coverage for instruction execution loop.
 
 ## Test Coverage Goals
 
 | Component | Target Coverage | Current Status |
 |-----------|----------------|----------------|
-| Core Logic (Program, Instruction) | 100% | ✅ Logic works, tests need refactoring |
-| Services | 95% | ⚠️ Tests need refactoring |
-| Simulation Systems | 80% | ⚠️ Partial coverage |
-| UI Components | 60% | ❌ Not yet implemented |
+| Core Logic (Program, Instruction) | 100% | ✅ ADR-003 regression suites passing |
+| Services | 95% | ✅ AI Translation + Persistence validated |
+| Simulation Systems | 80% | ⚠️ Awaiting AI core component suite (Unit 4) |
+| UI Components | 60% | ⚠️ Tutorial/system automation pending |
 
 ## Writing New Tests
 
@@ -151,26 +143,26 @@ See `.github/workflows/godot-ci.yml` for configuration.
 
 ### "GdUnit4 not found" Error
 
-- Ensure the plugin is installed in `addons/gdUnit4/`
-- Check that the plugin is enabled in Project Settings → Plugins
+- Ensure the plugin resides in `addons/gdUnit4/` (git submodule or manual copy).
+- Confirm the plugin is enabled in Project Settings → Plugins.
 
 ### "Could not find type in current scope" Error
 
-- You're using `class_name` instead of `preload` pattern
-- See `docs/adr/ADR-002-Preload-Pattern.md` for correct usage
+- You're using `class_name` instead of preload pattern.
+- See `docs/adr/ADR-002-Preload-Pattern.md` for required approach.
 
 ### Tests Pass Locally but Fail in CI
 
-- Check that all dependencies use `preload` pattern
-- Ensure no absolute paths are used
-- Verify autoload singletons (EventBus) are properly configured
+- Confirm commands use `/snap/bin/godot4` or alias on CI runners.
+- Verify EventBus autoload is available before running service suites.
+- Ensure `tools/run_godot_checks.sh` exits cleanly (no hanging startup scenes).
 
 ## Next Steps
 
-1. **Install GdUnit4** plugin
-2. **Update test files** to use preload pattern
-3. **Run all tests** to establish baseline
-4. **Write new tests** for upcoming features (TDD)
+1. **Install GdUnit4** plugin (if not already synced)
+2. **Run ADR-003 regression matrix** to confirm baseline
+3. **Execute smoke test** prior to gameplay QA sessions
+4. **Populate Unit 4 stub suites** as tooling foundation lands
 
 ## References
 

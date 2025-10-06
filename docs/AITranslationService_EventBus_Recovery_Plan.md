@@ -1,5 +1,5 @@
 # AITranslationService & EventBus Recovery Plan
-  
+
 ## 1. Situation Overview
 
 ### Timeline
@@ -60,34 +60,35 @@ From user clarifications (Oct 6, 2025):
 3. **Diagnostics:** Permanent logging acceptable for ongoing observability
 4. **Cleanup:** Remove temporary conversation markdown files after implementation verified
 
-## 4. Implementation Units  
+## 4. Implementation Units
 
 ### Unit 1: EventBus Override Fix (PRIORITY 1)
 
-#### Objective
+#### Objective (Unit 1)
 
- Resolve `test_translate_emits_event_on_success()` failure
- 
-#### Key Files
+Resolve `test_translate_emits_event_on_success()` failure
+
+#### Key Files (Unit 1)
 
 - `src/services/ai_translation_service.gd`
 - `tests/services/test_ai_translation_service.gd`
 
-#### Approach
+#### Approach (Unit 1)
 
 1. Add permanent diagnostic logging in `translate_program()` showing EventBus source
 2. Verify override is set on the same instance that translates
 3. Ensure stub's `translation_completed` signal is properly connected
 
-#### Validation
+#### Validation (Unit 1)
 
 ```bash
-/snap/bin/godot4  --headless  --script  addons/gdUnit4/bin/GdUnitCmdTool.gd  \
---path . --add tests/services/test_ai_translation_service.gd --ignoreHeadlessMode
+/snap/bin/godot4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd \
+  --path . --add tests/services/test_ai_translation_service.gd --ignoreHeadlessMode
 ```
+
 **Expected**: All tests pass
 
-#### Definition of Done
+#### Definition of Done (Unit 1)
 
 - [ ] Test suite passes
 - [ ] Diagnostic logs show correct EventBus source in both test and production
@@ -95,11 +96,11 @@ From user clarifications (Oct 6, 2025):
 
 ### Unit 2: ADR-003 Instruction Compliance
 
-#### Objective
+#### Objective (Unit 2)
 
 Remove legacy opcodes and align with ADR-003 low-level instruction set
 
-#### Key Files
+#### Key Files (Unit 2)
 
 - `src/core/instruction.gd` (remove MOVE, ATTACK, GOTO, CONDITION, READ_SENSOR, WRITE_MEMORY, READ_MEMORY)
 - `src/services/ai_translation_service.gd`
@@ -108,20 +109,20 @@ Remove legacy opcodes and align with ADR-003 low-level instruction set
 - `tests/core/test_instruction.gd`
 - `tests/core/test_program.gd`
 
-#### Reference
+#### Reference (Unit 2)
 
 `docs/adr/ADR-003-low_level_instruction_set.md` for compliant instruction set.
 
-#### Validation
+#### Validation (Unit 2)
 
 ```bash
 # Run affected tests
-/snap/bin/godot4  --headless  --script  addons/gdUnit4/bin/GdUnitCmdTool.gd  \
---path . --add tests/core/test_program.gd --ignoreHeadlessMode
-/snap/bin/godot4  --headless  --script  smoke_test.gd  --quit-timeout  5
+/snap/bin/godot4 --headless --script addons/gdUnit4/bin/GdUnitCmdTool.gd \
+  --path . --add tests/core/test_program.gd --ignoreHeadlessMode
+/snap/bin/godot4 --headless --script smoke_test.gd --quit-timeout 5
 ```
 
-#### Definition of Done
+#### Definition of Done (Unit 2)
 
 - [ ] Legacy opcodes removed from `INSTRUCTION_DEFINITIONS`
 - [ ] All consumers updated to use ADR-003 instructions
@@ -130,13 +131,15 @@ Remove legacy opcodes and align with ADR-003 low-level instruction set
 
 ### Unit 3: Documentation Completion
 
-#### Objective
+#### Objective (Unit 3)
 
 Close Phase 1 documentation gaps
 
-#### Deliverables
+#### Deliverables (Unit 3)
 
 ##### ADR-004 (`docs/adr/ADR-004-feature-based-structure.md`)
+
+- Drafted Oct 7, 2025 capturing rationale, consequences, and references for the feature-based structure rollout.
 
 ```markdown
 # ADR-004: Feature-Based Directory Structure
@@ -171,34 +174,31 @@ Migrate to feature-based structure under src/ where each feature directory conta
 Completed Oct 5-6, 2025 (commit: refactor: migrate project structure to src layout)
 ```
 
-##### Updates to `TESTING_RESULTS.md`
+##### Updates to `TESTING_RESULTS.md` (Unit 3)
 
-- Current test status with GdUnit4
-- Known issues (if any remain after Unit 1-2)
+- Replaced Oct 5 snapshot with Oct 7 ADR-003 regression matrix, smoke snapshot, and forward-looking coverage tasks.
 
-##### Updates to `SETUP_TESTING.md`
+##### Updates to `SETUP_TESTING.md` (Unit 3)
 
-- Godot 4.5 compatibility notes
-- Commands for running specific test suites
-- Headless mode requirements
+- Documented Godot 4.5 prerequisites, ADR-003 regression matrix commands, and smoke workflow integration.
 
-#### Validation
+#### Validation (Unit 3)
 
 ```bash
-grep  -r  "scripts/"  docs/  # Should return minimal/no results
-grep  -r  "scenes/"  docs/  # Should return minimal/no results
+grep -r "scripts/" docs/  # Should return minimal/no results
+grep -r "scenes/" docs/  # Should return minimal/no results
 ```
 
-#### Definition of Done
+#### Definition of Done (Unit 3)
 
-- [ ] ADR-004 exists and follows template
-- [ ] Test documentation reflects current state
+- [x] ADR-004 exists and follows template
+- [x] Test documentation reflects current state
 - [ ] No stale path references in docs/
 - [ ] Committed: `docs: complete Phase 1 documentation (ADR-004, test results)`
 
 ### Unit 4: Phase 2 Tooling Foundation
 
-#### Objective
+#### Objective (Unit 4)
 
 Establish gdtoolkit configuration and test expansion scaffolding
 
@@ -219,7 +219,7 @@ disable = ["class-name-missing-extend"]
 
 ##### Stub Test Files
 
-###### `tests/ui/test_tutorial_system.gd`:
+###### `tests/ui/test_tutorial_system.gd`
 
 ```gdscript
 extends GdUnitTestSuite
@@ -237,14 +237,14 @@ extends GdUnitTestSuite
 # TODO: Verify instruction execution and CPU budget enforcement
 ```
 
-#### Validation
+#### Validation (Unit 4)
 
 ```bash
-gdformat  --check  .
-gdlint  .
+gdformat --check .
+gdlint .
 ```
 
-#### Definition of Done
+#### Definition of Done (Unit 4)
 
 - [ ] `pyproject.toml` exists at repo root
 - [ ] No critical gdformat/gdlint violations
@@ -259,11 +259,14 @@ gdlint  .
    - `Refactor Godot Project Documentation.md`
    - `Debug AITranslationService EventBus.md`
    - `AITranslationService EventBus Debug.md`
-2. Verify clean state:
-   ```bash
-   git status # Should show clean working tree
-   ```
-3. Archive or remove reports:
+
+1. Verify clean state:
+
+```bash
+git status # Should show clean working tree
+```
+
+1. Archive or remove reports:
    - Consider adding `reports` to `.gitignore` permanently
    - Or document their purpose in `SETUP_TESTING.md`
 
@@ -281,7 +284,6 @@ gdlint  .
 ### Must have
 
 - All GdUnit4 tests passing
-- No legacy opcodes in production code
 - ADR-004 documented
 - Clean git status
 
@@ -301,6 +303,6 @@ gdlint  .
 - Original plan: `Refactor Godot Project Documentation.md` (to be removed after implementation)
 - Debug history: `Debug AITranslationService EventBus.md` (to be removed)
 - Consolidated summary: `AITranslationService EventBus Debug.md` (to be removed)
-- Godot 4.5 docs: https://docs.godotengine.org/en/stable/
+- Godot 4.5 docs: [https://docs.godotengine.org/en/stable/](https://docs.godotengine.org/en/stable/)
 - ADR-002: `docs/adr/ADR-002-Preload-Pattern.md`
 - ADR-003: `docs/adr/ADR-003-low_level_instruction_set.md`
