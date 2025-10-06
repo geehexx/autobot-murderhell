@@ -8,11 +8,31 @@ const ProgramScript = preload("res://src/core/program.gd")
 const InstructionScript = preload("res://src/core/instruction.gd")
 
 
+class EventBusStub:
+	extends Node
+	signal translation_completed(executable_script)
+
+
 var translation_service
+var event_bus_stub
+var _translation_completed_emitted: bool = false
 
 
 func before_test() -> void:
 	translation_service = TranslationServiceScript.new()
+	event_bus_stub = EventBusStub.new()
+	translation_service.set_event_bus_override(event_bus_stub)
+	_translation_completed_emitted = false
+
+
+func after_test() -> void:
+	if translation_service:
+		translation_service.set_event_bus_override(null)
+		translation_service.queue_free()
+		translation_service = null
+	if event_bus_stub:
+		event_bus_stub.queue_free()
+		event_bus_stub = null
 
 
 func test_translate_null_program_returns_error() -> void:
@@ -138,14 +158,14 @@ func test_translate_emits_event_on_success() -> void:
 	var program = ProgramScript.new()
 	program.add_instruction(InstructionScript.new("MOVE", 1))
 	
-	var signal_emitted: bool = false
-	var signal_handler: Callable = func(_exec: Dictionary) -> void:
-		signal_emitted = true
-	
-	EventBus.translation_completed.connect(signal_handler)
+	event_bus_stub.translation_completed.connect(Callable(self, "_on_translation_completed"))
 	translation_service.translate_program(program)
 	
 	await await_idle_frame()
 	
-	assert_bool(signal_emitted).is_true()
-	EventBus.translation_completed.disconnect(signal_handler)
+	assert_bool(_translation_completed_emitted).is_true()
+	event_bus_stub.translation_completed.disconnect(Callable(self, "_on_translation_completed"))
+
+
+func _on_translation_completed(_exec: Dictionary) -> void:
+	_translation_completed_emitted = true

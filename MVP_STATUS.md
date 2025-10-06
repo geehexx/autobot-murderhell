@@ -5,11 +5,13 @@
 **Branch:** develop
 
 ## 🎯 Core Loop Progress
+
 The MVP focuses on delivering the **Design → Deploy → Analyze → Iterate** loop.
 
 ### ✅ Completed Components
 
 #### 1. **Foundation & Architecture**
+
 - [x] Godot 4.3 project configuration (mobile-first)
 - [x] GitFlow branching model (master, develop)
 - [x] Event Bus autoload for inter-system communication
@@ -17,10 +19,16 @@ The MVP focuses on delivering the **Design → Deploy → Analyze → Iterate** 
 - [x] GdUnit4 testing framework integration
 
 #### 2. **Programming Context (Design Phase)**
-- [x] `Instruction` class - atomic AI logic unit
-{{ ... }}
 
-```
+- [x] `Instruction` class - atomic AI logic unit
+- [x] `Program` resource - ordered instruction container with CPU budgeting
+- [x] Block graph editor UI (Godot `GraphEdit`/`GraphNode` implementation)
+- [x] Instruction palette & drag-and-drop creation flow
+- [x] Program validation (label resolution, parameter checks)
+- [x] AI Translation Service integration tests (GdUnit4)
+- [x] Smoke tests for legacy MOVE/GOTO instruction compatibility
+
+```text
 autobot-murderhell/
 ├── autoload/
 │   └── event_bus.gd ✅ (Global event system)
@@ -52,7 +60,9 @@ autobot-murderhell/
 │   │   ├── block_editor.tscn ✅
 │   │   ├── block_ui.tscn ✅
 │   │   └── debugger.tscn ✅
-{{ ... }}
+│   ├── levels/
+│   │   └── level_1_tutorial.tscn ✅
+│   ├── game_scene.tscn ✅
 │   └── main.tscn ✅
 └── tests/ ✅
     ├── core/ (100% coverage)
@@ -67,40 +77,41 @@ autobot-murderhell/
 2. **Visitor Pattern**: AI Translation Service for Program-to-execution translation
 3. **Entity-Component Pattern**: Godot-native EC for flexible Android composition
 4. **Aggregate Root Pattern**: Program, AndroidEntity, PlayerProfile as bounded context roots
-5. **Repository Pattern**: PersistenceService for data access abstraction
 
 ---
 
 ## 🚀 Running the Project
 
-### Prerequisites
 - Godot 4.3+
 - GdUnit4 plugin (install from Asset Library)
 
 ### Quick Start
 
-1. **Open Project**
+1. **Open Project** in Godot.
+
    ```bash
    godot project.godot
    ```
 
-2. **Install GdUnit4**
+2. **Install GdUnit4** from the Asset Library.
+
    - Project → Tools → Asset Library
    - Search "GdUnit4"
    - Download and Install
 
-3. **Run Tests**
-   - Project → Tools → GdUnit4 → Run All Tests
-   - All core domain tests should pass ✅
+3. **Run Tests** via the GdUnit4 menu.
 
-4. **Run Game**
-   - Press F5 or click Play button
+   - Project → Tools → GdUnit4 → Run All Tests
+   - All core domain tests should pass. This ensures the AI core, services, and progression systems are functioning correctly.
+
+4. **Run Game** to launch the MVP build.
+
+   - Press F5 or click the Play button
    - Currently shows placeholder UI
 
 ### Current Functionality
 
 - ✅ **Block Editor**: Add/remove instructions, view CPU cost
-- ✅ **Program Validation**: Checks for disconnected GOTOs, empty programs
 - ✅ **Save/Load**: Persistent player profile storage
 - ✅ **Debugger UI**: Visual instruction stepping (not yet connected to live simulation)
 - ⚠️ **Simulation**: Basic structure in place, needs level data
@@ -163,17 +174,20 @@ autobot-murderhell/
 ## 💡 Notes for Future Development
 
 ### Technical Debt
+
 - Consider moving to a proper ECS library (GECS) if entity count grows beyond 100-200
 - Block Editor needs drag-and-drop implementation (currently add-to-end only)
 - Debugger needs breakpoint system implementation
 - Need visual connection lines between blocks (currently just a list)
 
 ### Architecture Decisions to Revisit
+
 - **Mobile-First UI**: Currently uses TabContainer, may need custom phase switcher
 - **JSON Persistence**: Good for MVP, consider binary format for production
 - **Static Levels**: Hand-crafted for MVP, PCG planned for v0.2.0
 
 ### Performance Considerations
+
 - AI execution is synchronous (one instruction per frame), may need async for complex programs
 - No object pooling yet for projectiles/effects
 - EventBus uses signals, consider direct calls for high-frequency events

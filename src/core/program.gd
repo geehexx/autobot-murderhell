@@ -27,15 +27,14 @@ func _init(
 
 ## Adds an instruction to the end of the program.
 func add_instruction(instruction) -> void:
-	if instruction and instruction.is_valid():
+	if instruction:
 		instructions.append(instruction)
 
 
 ## Inserts an instruction at a specific index.
 func insert_instruction(instruction, index: int) -> void:
-	if instruction and instruction.is_valid():
-		if index >= 0 and index <= instructions.size():
-			instructions.insert(index, instruction)
+	if instruction and index >= 0 and index <= instructions.size():
+		instructions.insert(index, instruction)
 
 
 ## Removes an instruction at a given index.

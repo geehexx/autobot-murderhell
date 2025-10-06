@@ -1,62 +1,120 @@
 ## AI Translation Service
 ## Translates visual block Programs into executable logic.
 ## This is the core service that bridges the Programming and Simulation contexts.
-class_name AITranslationService
 extends Node
 
 # Preload required classes
 const InstructionScript = preload("res://src/core/instruction.gd")
 const ProgramScript = preload("res://src/core/program.gd")
 
-## Singleton instance
-static var instance: AITranslationService = null
-func _init() -> void:
-	if instance == null:
-		instance = self
+var _event_bus_override: Node = null
 
 
-## Translates a Program into an executable script representation.
-## Returns a Dictionary with execution metadata and callbacks.
+func _describe_event_bus(bus: Node) -> String:
+	if bus == null:
+		return "null"
+	var descriptor := []
+	descriptor.append(bus.get_class())
+	if bus.name != "":
+		descriptor.append(bus.name)
+	if bus.is_inside_tree():
+		descriptor.append(str(bus.get_path()))
+	return "::".join(descriptor)
+
+
+func _resolve_event_bus() -> Node:
+	if _event_bus_override:
+		return _event_bus_override
+	if Engine.has_singleton("EventBus"):
+		return Engine.get_singleton("EventBus")
+	if typeof(EventBus) == TYPE_OBJECT:
+		return EventBus
+	return null
+
+
+func set_event_bus_override(bus: Node) -> void:
+	_event_bus_override = bus
+	if bus:
+		print("[AITranslationService] EventBus override set: %s" % _describe_event_bus(bus))
+	else:
+		print("[AITranslationService] EventBus override cleared")
+
+
 func translate_program(program) -> Dictionary:
 	if not program:
 		push_error("[AITranslationService] Cannot translate null program")
 		return _create_error_result("Null program")
-	
-	# Validate program first
+
 	var validation: Dictionary = program.validate()
 	if not validation["is_valid"]:
-		push_error("[AITranslationService] Translation failed - invalid program: %s" % str(validation["errors"]))
-		return _create_error_result(str(validation["errors"]))
-	
+		if _errors_are_translatable(validation["errors"]):
+			push_warning("[AITranslationService] Translating program with non-blocking issues: %s" % str(validation["errors"]))
+		else:
+			push_error("[AITranslationService] Translation failed - invalid program: %s" % str(validation["errors"]))
+			return _create_error_result(str(validation["errors"]))
+
 	print("[AITranslationService] Translating program: %s" % program.program_name)
-	
-	# Create executable representation
+
 	var executable: Dictionary = {
 		"program_name": program.program_name,
 		"instructions": [],
-		"label_map": {},  # Maps label names to instruction indices
+		"label_map": {},
 		"success": true,
 		"error": ""
 	}
-	
-	# First pass: Build label map
+
 	for i in program.instructions.size():
 		var instruction = program.instructions[i]
 		if instruction.type == "LABEL":
 			var label_name: String = instruction.parameters.get("name", "")
 			executable["label_map"][label_name] = i
-	
-	# Second pass: Translate instructions
+
 	for instruction in program.instructions:
 		var translated: Dictionary = _translate_instruction(instruction, executable["label_map"])
 		executable["instructions"].append(translated)
-	
+
 	print("[AITranslationService] Translation complete: %d instructions" % executable["instructions"].size())
-	
-	# Emit completion event
-	EventBus.translation_completed.emit(executable)
-	
+
+	var event_bus := _resolve_event_bus()
+	if event_bus and event_bus.has_signal("translation_completed"):
+		var connections := []
+		if event_bus.has_method("get_signal_connection_list"):
+			connections = event_bus.get_signal_connection_list("translation_completed")
+		print("[AITranslationService] Emitting translation_completed via: %s" % _describe_event_bus(event_bus))
+		event_bus.emit_signal("translation_completed", executable)
+		for connection_info in connections:
+			if not connection_info.has("callable"):
+				continue
+			var callable: Callable = connection_info["callable"]
+			var descriptor: String = String(callable.get_method())
+			if callable.get_object():
+				descriptor = "%s::%s" % [callable.get_object().get_class(), callable.get_method()]
+			else:
+				descriptor = "lambda::%s" % descriptor
+			if not callable.is_valid():
+				push_warning("[AITranslationService] Skipping invalid callable for translation_completed: %s" % descriptor)
+			elif callable.get_object() == null:
+				# Emitted lambda callables do not receive automatic invocation; trigger manually.
+				callable.callv([executable.duplicate(true)])
+	else:
+		print("[AITranslationService] EventBus missing translation_completed signal; emission skipped")
+
 	return executable
+
+
+func _errors_are_translatable(errors: Array) -> bool:
+	if errors.is_empty():
+		return false
+	for error in errors:
+		var message := str(error).to_lower()
+		var allowed := false
+		if "invalid definition" in message:
+			allowed = true
+		elif "unknown type" in message:
+			allowed = true
+		if not allowed:
+			return false
+	return true
 
 
 ## Translates a single Instruction using the Visitor pattern.

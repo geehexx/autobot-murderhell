@@ -65,6 +65,49 @@ const INSTRUCTION_DEFINITIONS := {
 		"cpu_cost": 2,
 		"required_params": [],
 		"optional_params": ["weapon_id"]
+	},
+	# Legacy instructions maintained for backward compatibility with pre-ADR programs.
+	"MOVE": {
+		"category": "legacy",
+		"cpu_cost": 1,
+		"required_params": [],
+		"optional_params": ["direction", "distance"]
+	},
+	"ATTACK": {
+		"category": "legacy",
+		"cpu_cost": 2,
+		"required_params": [],
+		"optional_params": []
+	},
+	"GOTO": {
+		"category": "legacy",
+		"cpu_cost": 1,
+		"required_params": ["label"],
+		"optional_params": []
+	},
+	"CONDITION": {
+		"category": "legacy",
+		"cpu_cost": 1,
+		"required_params": ["condition_type"],
+		"optional_params": ["jump_if_true", "jump_if_false"]
+	},
+	"READ_SENSOR": {
+		"category": "legacy",
+		"cpu_cost": 1,
+		"required_params": ["sensor_type", "store_in"],
+		"optional_params": []
+	},
+	"WRITE_MEMORY": {
+		"category": "legacy",
+		"cpu_cost": 1,
+		"required_params": ["cell_index", "value_source"],
+		"optional_params": []
+	},
+	"READ_MEMORY": {
+		"category": "legacy",
+		"cpu_cost": 1,
+		"required_params": ["cell_index", "store_in"],
+		"optional_params": []
 	}
 }
 
