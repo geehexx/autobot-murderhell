@@ -30,30 +30,38 @@ func after_test() -> void:
 
 
 ## TEST 1: User creates a simple program
-func test_user_creates_simple_move_program() -> void:
+
+func test_user_creates_simple_movement_program() -> void:
 	# User creates a new program
 	var program = ProgramScript.new("My First Program")
 	assert_str(program.program_name).is_equal("My First Program")
 	
-	# User adds a MOVE instruction
-	var move_instr = InstructionScript.new("MOVE", 2, {"direction": "forward", "distance": 50.0})
-	program.add_instruction(move_instr)
+	# User adds SET_TARGET_VELOCITY instruction
+	var velocity_instr = InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(50.0, 0.0)
+	})
+	program.add_instruction(velocity_instr)
 	
 	# Program should have 1 instruction
 	assert_int(program.instructions.size()).is_equal(1)
-	assert_str(program.instructions[0].type).is_equal("MOVE")
+	assert_str(program.instructions[0].type).is_equal("SET_TARGET_VELOCITY")
 	
-	print("[TEST] ✓ User can create a program with a MOVE instruction")
+	print("[TEST] ✓ User can create a program with a SET_TARGET_VELOCITY instruction")
 
 
 ## TEST 2: User creates a program with labels and jumps
 func test_user_creates_loop_program() -> void:
 	var program = ProgramScript.new("Loop Program")
 	
-	# Add instructions: LABEL -> MOVE -> GOTO
+	# Add instructions: LABEL -> SET_TARGET_VELOCITY -> JUMP_IF
 	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "START"}))
-	program.add_instruction(InstructionScript.new("MOVE", 2, {"direction": "forward"}))
-	program.add_instruction(InstructionScript.new("GOTO", 1, {"label": "START"}))
+	program.add_instruction(InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(10.0, 0.0)
+	}))
+	program.add_instruction(InstructionScript.new("JUMP_IF", 1, {
+		"condition": {"operator": "is_true", "lhs": true},
+		"target_label": "START"
+	}))
 	
 	# Validate program
 	var validation = program.validate()
@@ -65,8 +73,11 @@ func test_user_creates_loop_program() -> void:
 ## TEST 3: Translation service translates program correctly
 func test_translation_service_translates_program() -> void:
 	var program = ProgramScript.new("Test Program")
-	program.add_instruction(InstructionScript.new("MOVE", 2))
-	program.add_instruction(InstructionScript.new("ATTACK", 3))
+	program.add_instruction(InstructionScript.new("SET_VARIABLE", -1, {
+		"target": "speed",
+		"value": 10
+	}))
+	program.add_instruction(InstructionScript.new("FIRE_WEAPON", 2))
 	
 	# Translate the program
 	var result = translation_service.translate_program(program)
@@ -92,7 +103,9 @@ func test_android_loads_and_executes_program() -> void:
 	
 	# Create a simple program
 	var program = ProgramScript.new("Android Program")
-	program.add_instruction(InstructionScript.new("MOVE", 1))
+	program.add_instruction(InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(5, 0)
+	}))
 	
 	# Android should be able to load the program
 	var load_success = test_android.load_program(program)
@@ -108,8 +121,11 @@ func test_android_loads_and_executes_program() -> void:
 func test_program_validation_catches_invalid_goto() -> void:
 	var program = ProgramScript.new("Invalid Program")
 	
-	# Add GOTO that references non-existent label
-	program.add_instruction(InstructionScript.new("GOTO", 1, {"label": "NONEXISTENT"}))
+	# Add JUMP_IF that references non-existent label
+	program.add_instruction(InstructionScript.new("JUMP_IF", 1, {
+		"condition": {"operator": "is_true", "lhs": true},
+		"target_label": "NONEXISTENT"
+	}))
 	
 	var validation = program.validate()
 	assert_bool(validation["is_valid"]).is_false()
@@ -121,13 +137,15 @@ func test_program_validation_catches_invalid_goto() -> void:
 ## TEST 6: Program duplication creates independent copy
 func test_program_duplication_is_independent() -> void:
 	var original = ProgramScript.new("Original")
-	original.add_instruction(InstructionScript.new("MOVE", 2))
+	original.add_instruction(InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(5, 0)
+	}))
 	
 	var copy = original.duplicate_program()
 	
 	# Modify copy
 	copy.program_name = "Copy"
-	copy.add_instruction(InstructionScript.new("ATTACK", 3))
+	copy.add_instruction(InstructionScript.new("FIRE_WEAPON", 2))
 	
 	# Original should be unchanged
 	assert_str(original.program_name).is_equal("Original")
@@ -139,14 +157,17 @@ func test_program_duplication_is_independent() -> void:
 
 ## TEST 7: Instruction types are correctly identified
 func test_instruction_types_are_valid() -> void:
-	var move = InstructionScript.new("MOVE", 2)
-	var attack = InstructionScript.new("ATTACK", 3)
-	var goto_instr = InstructionScript.new("GOTO", 1, {"label": "START"})
+	var set_var = InstructionScript.new("SET_VARIABLE", -1, {"target": "speed"})
+	var fire_weapon = InstructionScript.new("FIRE_WEAPON", 2)
+	var jump_if = InstructionScript.new("JUMP_IF", 1, {
+		"condition": {"operator": "is_true", "lhs": true},
+		"target_label": "START"
+	})
 	
-	assert_str(move.type).is_equal("MOVE")
-	assert_str(attack.type).is_equal("ATTACK")
-	assert_str(goto_instr.type).is_equal("GOTO")
-	assert_str(goto_instr.parameters.get("label")).is_equal("START")
+	assert_str(set_var.type).is_equal("SET_VARIABLE")
+	assert_str(fire_weapon.type).is_equal("FIRE_WEAPON")
+	assert_str(jump_if.type).is_equal("JUMP_IF")
+	assert_str(jump_if.parameters.get("target_label")).is_equal("START")
 	
 	print("[TEST] ✓ Instruction types are correctly identified")
 
@@ -154,12 +175,17 @@ func test_instruction_types_are_valid() -> void:
 ## TEST 8: CPU cost calculation
 func test_program_calculates_cpu_cost() -> void:
 	var program = ProgramScript.new()
-	program.add_instruction(InstructionScript.new("MOVE", 2))
-	program.add_instruction(InstructionScript.new("ATTACK", 3))
-	program.add_instruction(InstructionScript.new("GOTO", 1))
+	program.add_instruction(InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(5, 0)
+	}))
+	program.add_instruction(InstructionScript.new("FIRE_WEAPON", 2))
+	program.add_instruction(InstructionScript.new("JUMP_IF", 1, {
+		"condition": {"operator": "is_true", "lhs": true},
+		"target_label": "LOOP"
+	}))
 	
 	var total_cost = program.get_total_cpu_cost()
-	assert_int(total_cost).is_equal(6)  # 2 + 3 + 1
+	assert_int(total_cost).is_equal(5)  # 2 + 2 + 1
 	
 	print("[TEST] ✓ Program calculates total CPU cost correctly")
 
@@ -168,9 +194,14 @@ func test_program_calculates_cpu_cost() -> void:
 func test_translation_builds_label_map() -> void:
 	var program = ProgramScript.new()
 	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "START"}))
-	program.add_instruction(InstructionScript.new("MOVE", 2))
+	program.add_instruction(InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(10, 0)
+	}))
 	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "LOOP"}))
-	program.add_instruction(InstructionScript.new("GOTO", 1, {"label": "START"}))
+	program.add_instruction(InstructionScript.new("JUMP_IF", 1, {
+		"condition": {"operator": "is_true", "lhs": true},
+		"target_label": "START"
+	}))
 	
 	var result = translation_service.translate_program(program)
 	
@@ -191,9 +222,14 @@ func test_complete_user_workflow() -> void:
 	
 	# 2. User adds instructions
 	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "MAIN_LOOP"}))
-	program.add_instruction(InstructionScript.new("MOVE", 2, {"direction": "forward", "distance": 10.0}))
-	program.add_instruction(InstructionScript.new("ATTACK", 3))
-	program.add_instruction(InstructionScript.new("GOTO", 1, {"label": "MAIN_LOOP"}))
+	program.add_instruction(InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(25, 0)
+	}))
+	program.add_instruction(InstructionScript.new("FIRE_WEAPON", 2))
+	program.add_instruction(InstructionScript.new("JUMP_IF", 1, {
+		"condition": {"operator": "is_true", "lhs": true},
+		"target_label": "MAIN_LOOP"
+	}))
 	print("[TEST] Step 2: Added 4 instructions (LABEL, MOVE, ATTACK, GOTO)")
 	
 	# 3. User validates program

@@ -74,7 +74,18 @@ func _populate_block_palette() -> void:
 		unlocked_blocks = player_profile.unlocked_blocks
 	else:
 		# Default blocks for testing
-		unlocked_blocks = ["MOVE", "ATTACK", "GOTO", "LABEL", "CONDITION"]
+		unlocked_blocks = [
+			"SET_VARIABLE",
+			"MATH_OP",
+			"VECTOR_OP",
+			"GET_SENSOR_DATA",
+			"DEBUG_LOG",
+			"SET_TARGET_VELOCITY",
+			"SET_ROTATION_TARGET",
+			"FIRE_WEAPON",
+			"LABEL",
+			"JUMP_IF"
+		]
 	
 	# Create UI elements for each block
 	for block_type in unlocked_blocks:
@@ -160,85 +171,57 @@ func _create_instruction_ui(instruction, index: int) -> Control:
 ## Creates parameter editing UI for an instruction
 func _create_parameter_ui(instruction, index: int):
 	match instruction.type:
-		"MOVE":
-			return _create_move_params(instruction, index)
-		"GOTO":
-			return _create_goto_params(instruction, index)
+		"SET_VARIABLE":
+			return _create_set_variable_params(instruction, index)
 		"LABEL":
 			return _create_label_params(instruction, index)
-		"CONDITION":
-			return _create_condition_params(instruction, index)
+		"SET_TARGET_VELOCITY":
+			return _create_set_target_velocity_params(instruction, index)
+		"JUMP_IF":
+			return _create_jump_if_params(instruction, index)
+		"DEBUG_LOG":
+			return _create_debug_log_params(instruction, index)
 		_:
 			return null
 
 
 ## Creates MOVE parameter UI
-func _create_move_params(instruction, index: int) -> Control:
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 10)
+## Creates SET_VARIABLE parameter UI
+func _create_set_variable_params(instruction, index: int) -> Control:
+	var vbox = VBoxContainer.new()
 	
-	# Direction dropdown
-	var direction_label = Label.new()
-	direction_label.text = "Direction:"
-	hbox.add_child(direction_label)
-	
-	var direction_option = OptionButton.new()
-	direction_option.add_item("forward", 0)
-	direction_option.add_item("backward", 1)
-	direction_option.add_item("left", 2)
-	direction_option.add_item("right", 3)
-	
-	var current_dir = instruction.parameters.get("direction", "forward")
-	match current_dir:
-		"forward": direction_option.selected = 0
-		"backward": direction_option.selected = 1
-		"left": direction_option.selected = 2
-		"right": direction_option.selected = 3
-	
-	direction_option.item_selected.connect(func(idx):
-		var dirs = ["forward", "backward", "left", "right"]
-		instruction.parameters["direction"] = dirs[idx]
-		EventBus.program_edited.emit(current_program)
-	)
-	hbox.add_child(direction_option)
-	
-	# Distance input
-	var distance_label = Label.new()
-	distance_label.text = "Distance:"
-	hbox.add_child(distance_label)
-	
-	var distance_spin = SpinBox.new()
-	distance_spin.min_value = 1.0
-	distance_spin.max_value = 500.0
-	distance_spin.step = 10.0
-	distance_spin.value = instruction.parameters.get("distance", 50.0)
-	distance_spin.value_changed.connect(func(value):
-		instruction.parameters["distance"] = value
-		EventBus.program_edited.emit(current_program)
-	)
-	hbox.add_child(distance_spin)
-	
-	return hbox
+	var target_hbox = HBoxContainer.new()
+	var target_label = Label.new()
+	target_label.text = "Target:"
+	target_hbox.add_child(target_label)
 
-
-## Creates GOTO parameter UI
-func _create_goto_params(instruction, index: int) -> Control:
-	var hbox = HBoxContainer.new()
-	
-	var label = Label.new()
-	label.text = "Jump to label:"
-	hbox.add_child(label)
-	
-	var line_edit = LineEdit.new()
-	line_edit.text = instruction.parameters.get("label", "START")
-	line_edit.custom_minimum_size = Vector2(150, 0)
-	line_edit.text_changed.connect(func(new_text):
-		instruction.parameters["label"] = new_text
+	var target_edit = LineEdit.new()
+	target_edit.text = instruction.parameters.get("target", "")
+	target_edit.custom_minimum_size = Vector2(150, 0)
+	target_edit.text_changed.connect(func(new_text):
+		instruction.parameters["target"] = new_text
 		EventBus.program_edited.emit(current_program)
 	)
-	hbox.add_child(line_edit)
-	
-	return hbox
+	target_hbox.add_child(target_edit)
+	vbox.add_child(target_hbox)
+
+	var value_hbox = HBoxContainer.new()
+	var value_label = Label.new()
+	value_label.text = "Value:"
+	value_hbox.add_child(value_label)
+
+	var value_edit = LineEdit.new()
+	value_edit.text = str(instruction.parameters.get("value", ""))
+	value_edit.custom_minimum_size = Vector2(150, 0)
+	value_edit.text_changed.connect(func(new_text):
+		instruction.parameters["value"] = new_text
+		instruction.parameters.erase("source")
+		EventBus.program_edited.emit(current_program)
+	)
+	value_hbox.add_child(value_edit)
+	vbox.add_child(value_hbox)
+
+	return vbox
 
 
 ## Creates LABEL parameter UI
@@ -261,67 +244,123 @@ func _create_label_params(instruction, index: int) -> Control:
 	return hbox
 
 
-## Creates CONDITION parameter UI
-func _create_condition_params(instruction, index: int) -> Control:
+## Creates SET_TARGET_VELOCITY parameter UI
+func _create_set_target_velocity_params(instruction, index: int) -> Control:
 	var vbox = VBoxContainer.new()
-	
-	# Condition type dropdown
-	var type_hbox = HBoxContainer.new()
-	var type_label = Label.new()
-	type_label.text = "Condition:"
-	type_hbox.add_child(type_label)
-	
-	var type_option = OptionButton.new()
-	type_option.add_item("IS_HEALTH_LOW", 0)
-	type_option.add_item("IS_ENEMY_NEARBY", 1)
-	type_option.add_item("IS_ENEMY_IN_RANGE", 2)
-	
-	var current_type = instruction.parameters.get("condition_type", "IS_HEALTH_LOW")
-	match current_type:
-		"IS_HEALTH_LOW": type_option.selected = 0
-		"IS_ENEMY_NEARBY": type_option.selected = 1
-		"IS_ENEMY_IN_RANGE": type_option.selected = 2
-	
-	type_option.item_selected.connect(func(idx):
-		var types = ["IS_HEALTH_LOW", "IS_ENEMY_NEARBY", "IS_ENEMY_IN_RANGE"]
-		instruction.parameters["condition_type"] = types[idx]
+	var velocity = instruction.parameters.get("velocity", Vector2.ZERO)
+
+	var x_hbox = HBoxContainer.new()
+	var x_label = Label.new()
+	x_label.text = "Velocity X:"
+	x_hbox.add_child(x_label)
+
+	var x_spin = SpinBox.new()
+	x_spin.min_value = -1000.0
+	x_spin.max_value = 1000.0
+	x_spin.step = 5.0
+	x_spin.value = velocity.x
+	x_spin.value_changed.connect(func(value):
+		instruction.parameters["velocity"] = Vector2(value, instruction.parameters.get("velocity", Vector2.ZERO).y)
 		EventBus.program_edited.emit(current_program)
 	)
-	type_hbox.add_child(type_option)
-	vbox.add_child(type_hbox)
-	
-	# Jump targets
-	var true_hbox = HBoxContainer.new()
-	var true_label = Label.new()
-	true_label.text = "If true, jump to:"
-	true_hbox.add_child(true_label)
-	
-	var true_edit = LineEdit.new()
-	true_edit.text = instruction.parameters.get("jump_if_true", "")
-	true_edit.custom_minimum_size = Vector2(100, 0)
-	true_edit.text_changed.connect(func(new_text):
-		instruction.parameters["jump_if_true"] = new_text
+	x_hbox.add_child(x_spin)
+	vbox.add_child(x_hbox)
+
+	var y_hbox = HBoxContainer.new()
+	var y_label = Label.new()
+	y_label.text = "Velocity Y:"
+	y_hbox.add_child(y_label)
+
+	var y_spin = SpinBox.new()
+	y_spin.min_value = -1000.0
+	y_spin.max_value = 1000.0
+	y_spin.step = 5.0
+	y_spin.value = velocity.y
+	y_spin.value_changed.connect(func(value):
+		instruction.parameters["velocity"] = Vector2(instruction.parameters.get("velocity", Vector2.ZERO).x, value)
 		EventBus.program_edited.emit(current_program)
 	)
-	true_hbox.add_child(true_edit)
-	vbox.add_child(true_hbox)
-	
-	var false_hbox = HBoxContainer.new()
-	var false_label = Label.new()
-	false_label.text = "If false, jump to:"
-	false_hbox.add_child(false_label)
-	
-	var false_edit = LineEdit.new()
-	false_edit.text = instruction.parameters.get("jump_if_false", "")
-	false_edit.custom_minimum_size = Vector2(100, 0)
-	false_edit.text_changed.connect(func(new_text):
-		instruction.parameters["jump_if_false"] = new_text
+	y_hbox.add_child(y_spin)
+	vbox.add_child(y_hbox)
+
+	var blend_hbox = HBoxContainer.new()
+	var blend_label = Label.new()
+	blend_label.text = "Blend:"
+	blend_hbox.add_child(blend_label)
+
+	var blend_spin = SpinBox.new()
+	blend_spin.min_value = 0.0
+	blend_spin.max_value = 1.0
+	blend_spin.step = 0.1
+	blend_spin.value = float(instruction.parameters.get("blend", 1.0))
+	blend_spin.value_changed.connect(func(value):
+		instruction.parameters["blend"] = value
 		EventBus.program_edited.emit(current_program)
 	)
-	false_hbox.add_child(false_edit)
-	vbox.add_child(false_hbox)
-	
+	blend_hbox.add_child(blend_spin)
+	vbox.add_child(blend_hbox)
+
 	return vbox
+
+
+## Creates JUMP_IF parameter UI
+func _create_jump_if_params(instruction, index: int) -> Control:
+	var vbox = VBoxContainer.new()
+
+	var target_hbox = HBoxContainer.new()
+	var target_label = Label.new()
+	target_label.text = "Target Label:"
+	target_hbox.add_child(target_label)
+
+	var target_edit = LineEdit.new()
+	target_edit.text = instruction.parameters.get("target_label", "")
+	target_edit.custom_minimum_size = Vector2(150, 0)
+	target_edit.text_changed.connect(func(new_text):
+		instruction.parameters["target_label"] = new_text
+		EventBus.program_edited.emit(current_program)
+	)
+	target_hbox.add_child(target_edit)
+	vbox.add_child(target_hbox)
+
+	var else_hbox = HBoxContainer.new()
+	var else_label = Label.new()
+	else_label.text = "Else Label:"
+	else_hbox.add_child(else_label)
+
+	var else_edit = LineEdit.new()
+	else_edit.text = instruction.parameters.get("else_label", "")
+	else_edit.custom_minimum_size = Vector2(150, 0)
+	else_edit.text_changed.connect(func(new_text):
+		if new_text.is_empty():
+			instruction.parameters.erase("else_label")
+		else:
+			instruction.parameters["else_label"] = new_text
+		EventBus.program_edited.emit(current_program)
+	)
+	else_hbox.add_child(else_edit)
+	vbox.add_child(else_hbox)
+
+	return vbox
+
+
+## Creates DEBUG_LOG parameter UI
+func _create_debug_log_params(instruction, index: int) -> Control:
+	var hbox = HBoxContainer.new()
+
+	var message_label = Label.new()
+	message_label.text = "Message:"
+	hbox.add_child(message_label)
+
+	var message_edit = LineEdit.new()
+	message_edit.text = instruction.parameters.get("message", "")
+	message_edit.custom_minimum_size = Vector2(200, 0)
+	message_edit.text_changed.connect(func(new_text):
+		instruction.parameters["message"] = new_text
+		EventBus.program_edited.emit(current_program)
+	)
+	hbox.add_child(message_edit)
+
+	return hbox
 
 
 ## Updates the CPU cost display.
@@ -360,28 +399,52 @@ func _on_add_block_pressed(block_type: String) -> void:
 ## Creates an instruction from a block type.
 func _create_instruction_from_type(block_type: String):
 	match block_type:
-			"MOVE":
-				return InstructionScript.new("MOVE", 2, {"direction": "forward", "distance": 1.0})
-			"ATTACK":
-				return InstructionScript.new("ATTACK", 3, {})
-			"GOTO":
-				return InstructionScript.new("GOTO", 1, {"label": "START"})
-			"LABEL":
-				return InstructionScript.new("LABEL", 0, {"name": "START"})
-			"CONDITION":
-				return InstructionScript.new("CONDITION", 2, {
-					"condition_type": "IS_HEALTH_LOW",
-					"jump_if_true": "",
-					"jump_if_false": ""
-				})
-			_:
-				return InstructionScript.new(block_type, 1, {})
+		"SET_VARIABLE":
+			return InstructionScript.new("SET_VARIABLE", -1, {"target": "var_name", "value": 0})
+		"MATH_OP":
+			return InstructionScript.new("MATH_OP", 1, {
+				"operation": "add",
+				"lhs": 0,
+				"rhs": 0,
+				"store_in": "result"
+			})
+		"VECTOR_OP":
+			return InstructionScript.new("VECTOR_OP", 1, {
+				"operation": "add",
+				"vector_a": Vector2.ZERO,
+				"vector_b": Vector2.ZERO,
+				"store_in": "vector_result"
+			})
+		"GET_SENSOR_DATA":
+			return InstructionScript.new("GET_SENSOR_DATA", 1, {
+				"sensor": "SELF_POSITION",
+				"store_in": "position"
+			})
+		"DEBUG_LOG":
+			return InstructionScript.new("DEBUG_LOG", 0, {"message": "Log message"})
+		"SET_TARGET_VELOCITY":
+			return InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+				"velocity": Vector2.ZERO,
+				"blend": 1.0
+			})
+		"SET_ROTATION_TARGET":
+			return InstructionScript.new("SET_ROTATION_TARGET", 2, {"rotation_deg": 0.0})
+		"FIRE_WEAPON":
+			return InstructionScript.new("FIRE_WEAPON", 2, {})
+		"LABEL":
+			return InstructionScript.new("LABEL", 0, {"name": "START"})
+		"JUMP_IF":
+			return InstructionScript.new("JUMP_IF", 1, {
+				"condition": {"operator": "is_true", "lhs": true},
+				"target_label": "START"
+			})
+		_:
+			return InstructionScript.new(block_type, 1, {})
 
 
 ## Callback when delete instruction button is pressed.
 func _on_delete_instruction_pressed(index: int) -> void:
 	if not current_program:
-		push_error("[BlockEditor] Cannot delete instruction - program is null")
 		return
 	
 	current_program.remove_instruction(index)

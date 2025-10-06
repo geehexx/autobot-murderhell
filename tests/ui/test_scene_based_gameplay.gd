@@ -33,9 +33,11 @@ func test_complete_gameplay_loop_with_scene() -> void:
 	print("[SCENE TEST] ✓ BlockEditor initialized with empty program")
 	
 	# 3. Programmatically add instructions to the program
-	# (Simulating user clicking "MOVE" button and configuring it)
-	var move_instruction = InstructionScript.new("MOVE", 2, {"direction": "forward", "distance": 100.0})
-	block_editor.current_program.add_instruction(move_instruction)
+	# (Simulating user clicking SET_TARGET_VELOCITY and configuring it)
+	var velocity_instruction = InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(100.0, 0.0)
+	})
+	block_editor.current_program.add_instruction(velocity_instruction)
 	block_editor._refresh_ui()
 	
 	assert_int(block_editor.current_program.instructions.size()).is_equal(1)
@@ -102,8 +104,10 @@ func test_multiple_deployment_cycles() -> void:
 	var deploy_button = block_editor.get_node("MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer/DeployButton")
 	
 	# Add a simple program
-	var move_instruction = InstructionScript.new("MOVE", 2, {"direction": "forward", "distance": 50.0})
-	block_editor.current_program.add_instruction(move_instruction)
+	var velocity_instruction = InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(50.0, 0.0)
+	})
+	block_editor.current_program.add_instruction(velocity_instruction)
 	
 	# First deployment
 	print("[SCENE TEST] First deployment...")
@@ -188,12 +192,14 @@ func test_attack_instruction_execution() -> void:
 	var simulation_manager = game_scene.get_node("SimulationViewport/SubViewport/SimulationManager")
 	var deploy_button = block_editor.get_node("MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer/DeployButton")
 	
-	# Add program: MOVE forward (to get closer), then ATTACK
+	# Add program: SET_TARGET_VELOCITY forward (to get closer), then FIRE_WEAPON
 	block_editor.current_program.add_instruction(
-		InstructionScript.new("MOVE", 2, {"direction": "forward", "distance": 350.0})
+		InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+			"velocity": Vector2(350.0, 0.0)
+		})
 	)
 	block_editor.current_program.add_instruction(
-		InstructionScript.new("ATTACK", 3, {})
+		InstructionScript.new("FIRE_WEAPON", 2)
 	)
 	
 	# Deploy
@@ -230,24 +236,25 @@ func test_program_loop_execution() -> void:
 	await runner.await_millis(100)
 	
 	var block_editor = game_scene.get_node("UILayer/TabContainer/Design/BlockEditor")
-	var simulation_manager = game_scene.get_node("SimulationViewport/SubViewport/SimulationManager")
-	var deploy_button = block_editor.get_node("MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer/DeployButton")
-	
-	# Create a looping program: LABEL -> MOVE -> GOTO
 	block_editor.current_program.add_instruction(
 		InstructionScript.new("LABEL", 0, {"name": "LOOP_START"})
 	)
 	block_editor.current_program.add_instruction(
-		InstructionScript.new("MOVE", 2, {"direction": "forward", "distance": 20.0})
+		InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+			"velocity": Vector2(20.0, 0.0)
+		})
 	)
 	block_editor.current_program.add_instruction(
-		InstructionScript.new("GOTO", 1, {"label": "LOOP_START"})
+		InstructionScript.new("JUMP_IF", 1, {
+			"condition": {"operator": "is_true", "lhs": true},
+			"target_label": "LOOP_START"
+		})
 	)
 	
 	# Deploy
 	deploy_button.emit_signal("pressed")
 	await runner.await_millis(200)
-	
+{{ ... }}
 	var player_android = simulation_manager.player_android
 	var initial_position = player_android.position
 	

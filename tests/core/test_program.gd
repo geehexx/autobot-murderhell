@@ -89,7 +89,10 @@ func test_remove_instruction_at_invalid_index() -> void:
 func test_get_total_cpu_cost() -> void:
 	var program = ProgramScript.new()
 	program.add_instruction(InstructionScript.new("SET_VARIABLE", -1, {"target": "speed", "value": 5}))
-	program.add_instruction(InstructionScript.new("JUMP_IF", -1, {"condition": "true", "target_label": "LOOP"}))
+	program.add_instruction(InstructionScript.new("JUMP_IF", -1, {
+		"condition": {"operator": "is_true", "lhs": true},
+		"target_label": "LOOP"
+	}))
 	program.add_instruction(InstructionScript.new("FIRE_WEAPON", 2))
 	
 	var total_cost: int = program.get_total_cpu_cost()
@@ -142,7 +145,10 @@ func test_validate_program_with_invalid_instruction() -> void:
 
 func test_validate_jump_if_with_missing_label() -> void:
 	var program = ProgramScript.new()
-	var jump_instruction = InstructionScript.new("JUMP_IF", -1, {"condition": "true", "target_label": "START"})
+	var jump_instruction = InstructionScript.new("JUMP_IF", -1, {
+		"condition": {"operator": "is_true", "lhs": true},
+		"target_label": "START"
+	})
 	program.add_instruction(jump_instruction)
 	
 	var result: Dictionary = program.validate()
@@ -154,7 +160,10 @@ func test_validate_jump_if_with_missing_label() -> void:
 func test_validate_jump_if_with_existing_label() -> void:
 	var program = ProgramScript.new()
 	var label = InstructionScript.new("LABEL", 0, {"name": "START"})
-	var jump_instruction = InstructionScript.new("JUMP_IF", -1, {"condition": "true", "target_label": "START"})
+	var jump_instruction = InstructionScript.new("JUMP_IF", -1, {
+		"condition": {"operator": "is_true", "lhs": true},
+		"target_label": "START"
+	})
 	
 	program.add_instruction(label)
 	program.add_instruction(jump_instruction)

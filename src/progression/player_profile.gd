@@ -49,10 +49,14 @@ func _initialize_defaults() -> void:
 	# These are sufficient to complete Stage 1 (Aim & Fire)
 	# Additional blocks unlock through progression
 	unlocked_blocks = [
+		"SET_VARIABLE",
 		"GET_SENSOR_DATA",
 		"DEBUG_LOG",
+		"SET_TARGET_VELOCITY",
 		"SET_ROTATION_TARGET",
-		"FIRE_WEAPON"
+		"FIRE_WEAPON",
+		"LABEL",
+		"JUMP_IF"
 	]
 	resources = {"credits": 0, "data_shards": 0}
 

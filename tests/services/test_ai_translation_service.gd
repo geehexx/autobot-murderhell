@@ -53,8 +53,11 @@ func test_translate_invalid_program_returns_error() -> void:
 
 func test_translate_simple_program_succeeds() -> void:
 	var program = ProgramScript.new("Simple Program")
-	program.add_instruction(InstructionScript.new("MOVE", 1, {"direction": "forward"}))
-	program.add_instruction(InstructionScript.new("ATTACK", 2))
+	program.add_instruction(InstructionScript.new("SET_VARIABLE", -1, {
+		"target": "speed",
+		"value": 10
+	}))
+	program.add_instruction(InstructionScript.new("FIRE_WEAPON", 2))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
@@ -67,9 +70,11 @@ func test_translate_simple_program_succeeds() -> void:
 func test_translate_builds_label_map() -> void:
 	var program = ProgramScript.new()
 	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "START"}))
-	program.add_instruction(InstructionScript.new("MOVE", 1))
+	program.add_instruction(InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(10, 0)
+	}))
 	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "LOOP"}))
-	program.add_instruction(InstructionScript.new("ATTACK", 2))
+	program.add_instruction(InstructionScript.new("FIRE_WEAPON", 2))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
@@ -78,21 +83,26 @@ func test_translate_builds_label_map() -> void:
 	assert_dict(result["label_map"]).contains_key_value("LOOP", 2)
 
 
-func test_translate_goto_instruction() -> void:
+func test_translate_jump_if_instruction() -> void:
 	var program = ProgramScript.new()
 	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "START"}))
-	program.add_instruction(InstructionScript.new("GOTO", 1, {"label": "START"}))
+	program.add_instruction(InstructionScript.new("JUMP_IF", -1, {
+		"condition": {"operator": "is_true", "lhs": true},
+		"target_label": "START"
+	}))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
 	assert_bool(result["success"]).is_true()
-	var goto_instruction: Dictionary = result["instructions"][1]
-	assert_str(goto_instruction["type"]).is_equal("GOTO")
+	var jump_instruction: Dictionary = result["instructions"][1]
+	assert_str(jump_instruction["type"]).is_equal("JUMP_IF")
 
 
 func test_translated_instruction_has_execute_callback() -> void:
 	var program = ProgramScript.new()
-	program.add_instruction(InstructionScript.new("MOVE", 1))
+	program.add_instruction(InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(0, 1)
+	}))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
@@ -102,45 +112,56 @@ func test_translated_instruction_has_execute_callback() -> void:
 
 func test_translated_instruction_preserves_metadata() -> void:
 	var program = ProgramScript.new()
-	var instruction = InstructionScript.new("MOVE", 3, {"direction": "left"}, "MOVE_123")
+	var instruction = InstructionScript.new("SET_TARGET_VELOCITY", 2, {
+		"velocity": Vector2(-1, 0),
+		"blend": 0.5
+	}, "VEL_123")
 	program.add_instruction(instruction)
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
 	var translated: Dictionary = result["instructions"][0]
-	assert_str(translated["type"]).is_equal("MOVE")
-	assert_str(translated["instruction_id"]).is_equal("MOVE_123")
-	assert_int(translated["cpu_cost"]).is_equal(3)
-	assert_dict(translated["parameters"]).contains_key_value("direction", "left")
+	assert_str(translated["type"]).is_equal("SET_TARGET_VELOCITY")
+	assert_str(translated["instruction_id"]).is_equal("VEL_123")
+	assert_int(translated["cpu_cost"]).is_equal(2)
+	assert_dict(translated["parameters"]).contains_key("velocity")
 
 
-func test_translate_memory_operations() -> void:
+func test_translate_vector_operation() -> void:
 	var program = ProgramScript.new()
-	program.add_instruction(InstructionScript.new("WRITE_MEMORY", 1, {"cell_index": 0, "value_source": "temp"}))
-	program.add_instruction(InstructionScript.new("READ_MEMORY", 1, {"cell_index": 0, "store_in": "result"}))
-	
-	var result: Dictionary = translation_service.translate_program(program)
-	
-	assert_bool(result["success"]).is_true()
-	assert_array(result["instructions"]).has_size(2)
-	assert_str(result["instructions"][0]["type"]).is_equal("WRITE_MEMORY")
-	assert_str(result["instructions"][1]["type"]).is_equal("READ_MEMORY")
-
-
-func test_translate_condition_instruction() -> void:
-	var program = ProgramScript.new()
-	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "RETREAT"}))
-	program.add_instruction(InstructionScript.new("CONDITION", 2, {
-		"condition_type": "IS_HEALTH_LOW",
-		"jump_if_true": "RETREAT",
-		"jump_if_false": ""
+	program.add_instruction(InstructionScript.new("VECTOR_OP", 1, {
+		"operation": "add",
+		"vector_a": Vector2(1, 0),
+		"vector_b": Vector2(0, 1),
+		"store_in": "result"
 	}))
 	
 	var result: Dictionary = translation_service.translate_program(program)
 	
 	assert_bool(result["success"]).is_true()
-	var condition: Dictionary = result["instructions"][1]
-	assert_str(condition["type"]).is_equal("CONDITION")
+	assert_array(result["instructions"]).has_size(1)
+	assert_str(result["instructions"][0]["type"]).is_equal("VECTOR_OP")
+
+
+
+
+func test_translate_jump_if_condition() -> void:
+	var program = ProgramScript.new()
+	program.add_instruction(InstructionScript.new("LABEL", 0, {"name": "RETREAT"}))
+	program.add_instruction(InstructionScript.new("JUMP_IF", -1, {
+		"condition": {
+			"operator": "<",
+			"lhs": {"type": "variable", "name": "health"},
+			"rhs": 25
+		},
+		"target_label": "RETREAT"
+	}))
+	
+	var result: Dictionary = translation_service.translate_program(program)
+	
+	assert_bool(result["success"]).is_true()
+	var jump_if: Dictionary = result["instructions"][1]
+	assert_str(jump_if["type"]).is_equal("JUMP_IF")
 
 
 func test_translate_unknown_instruction_type() -> void:
@@ -156,7 +177,7 @@ func test_translate_unknown_instruction_type() -> void:
 
 func test_translate_emits_event_on_success() -> void:
 	var program = ProgramScript.new()
-	program.add_instruction(InstructionScript.new("MOVE", 1))
+	program.add_instruction(InstructionScript.new("DEBUG_LOG", 0, {"message": "translated"}))
 	
 	event_bus_stub.translation_completed.connect(Callable(self, "_on_translation_completed"))
 	translation_service.translate_program(program)

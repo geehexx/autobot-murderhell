@@ -131,24 +131,26 @@ func _translate_instruction(instruction, label_map: Dictionary) -> Dictionary:
 	
 	# Use Visitor pattern to create type-specific execution logic
 	match instruction.type:
-		"MOVE":
-			translated["execute"] = _create_move_executor(instruction.parameters)
-		"ATTACK":
-			translated["execute"] = _create_attack_executor(instruction.parameters)
-		"GOTO":
-			translated["execute"] = _create_goto_executor(instruction.parameters, label_map)
-		"CONDITION":
-			translated["execute"] = _create_condition_executor(instruction.parameters, label_map)
-		"READ_SENSOR":
-			translated["execute"] = _create_sensor_executor(instruction.parameters)
-		"WRITE_MEMORY":
-			translated["execute"] = _create_memory_write_executor(instruction.parameters)
-		"READ_MEMORY":
-			translated["execute"] = _create_memory_read_executor(instruction.parameters)
+		"SET_VARIABLE":
+			translated["execute"] = _create_set_variable_executor(instruction.parameters)
+		"MATH_OP":
+			translated["execute"] = _create_math_op_executor(instruction.parameters)
+		"VECTOR_OP":
+			translated["execute"] = _create_vector_op_executor(instruction.parameters)
+		"GET_SENSOR_DATA":
+			translated["execute"] = _create_get_sensor_data_executor(instruction.parameters)
+		"DEBUG_LOG":
+			translated["execute"] = _create_debug_log_executor(instruction.parameters)
 		"LABEL":
-			# Labels are markers, no execution needed
-			translated["execute"] = func(_a, _s: Dictionary) -> Dictionary:
-				return {"continue": true, "jump_to": -1}
+			translated["execute"] = _create_label_executor()
+		"JUMP_IF":
+			translated["execute"] = _create_jump_if_executor(instruction.parameters, label_map)
+		"SET_TARGET_VELOCITY":
+			translated["execute"] = _create_set_target_velocity_executor(instruction.parameters)
+		"SET_ROTATION_TARGET":
+			translated["execute"] = _create_set_rotation_target_executor(instruction.parameters)
+		"FIRE_WEAPON":
+			translated["execute"] = _create_fire_weapon_executor(instruction.parameters)
 		_:
 			push_warning("[AITranslationService] Unknown instruction type: %s" % instruction.type)
 			translated["execute"] = _create_noop_executor()
@@ -156,90 +158,213 @@ func _translate_instruction(instruction, label_map: Dictionary) -> Dictionary:
 	return translated
 
 
-## Creates a MOVE instruction executor.
-func _create_move_executor(params: Dictionary) -> Callable:
-	var direction: String = params.get("direction", "forward")
-	var distance: float = params.get("distance", 1.0)
+## Creates a SET_VARIABLE instruction executor.
+func _create_set_variable_executor(params: Dictionary) -> Callable:
+	var target: String = params.get("target", "")
+	var value = params.get("value", null)
+	var source = params.get("source", null)
 	
-	return func(android, _state: Dictionary) -> Dictionary:
-		# Placeholder - actual movement will be handled by MovementSystem
-		print("    [Execute] MOVE %s (%f units)" % [direction, distance])
-		# In real implementation, this would emit a movement request
-		# or directly modify the android's velocity/position
-		return {"continue": true, "jump_to": -1}
-
-
-## Creates an ATTACK instruction executor.
-func _create_attack_executor(params: Dictionary) -> Callable:
-	return func(android, _state: Dictionary) -> Dictionary:
-		print("    [Execute] ATTACK")
-		# Placeholder - actual combat will be handled by CombatSystem
-		return {"continue": true, "jump_to": -1}
-
-
-## Creates a GOTO instruction executor.
-func _create_goto_executor(params: Dictionary, label_map: Dictionary) -> Callable:
-	var label: String = params.get("label", "")
-	var target_index: int = label_map.get(label, -1)
-	
-	return func(_android, _state: Dictionary) -> Dictionary:
-		print("    [Execute] GOTO %s (index %d)" % [label, target_index])
-		return {"continue": true, "jump_to": target_index}
-
-
-## Creates a CONDITION instruction executor.
-func _create_condition_executor(params: Dictionary, label_map: Dictionary) -> Callable:
-	var condition_type: String = params.get("condition_type", "IS_HEALTH_LOW")
-	var jump_if_true: String = params.get("jump_if_true", "")
-	var jump_if_false: String = params.get("jump_if_false", "")
-	
-	return func(android, _state: Dictionary) -> Dictionary:
-		var condition_result: bool = _evaluate_condition(condition_type, android)
-		print("    [Execute] CONDITION %s = %s" % [condition_type, condition_result])
-		
-		var target_label: String = jump_if_true if condition_result else jump_if_false
-		if target_label.is_empty():
+	return func(_android, state: Dictionary) -> Dictionary:
+		_ensure_state_defaults(state)
+		if target.is_empty():
+			push_warning("[AITranslationService] SET_VARIABLE missing 'target'")
 			return {"continue": true, "jump_to": -1}
-		
-		var target_index: int = label_map.get(target_label, -1)
-		return {"continue": true, "jump_to": target_index}
-
-
-## Creates a READ_SENSOR instruction executor.
-func _create_sensor_executor(params: Dictionary) -> Callable:
-	var sensor_type: String = params.get("sensor_type", "PROXIMITY")
-	var store_in: String = params.get("store_in", "temp")
-	
-	return func(_android, state: Dictionary) -> Dictionary:
-		print("    [Execute] READ_SENSOR %s -> %s" % [sensor_type, store_in])
-		# Placeholder - read sensor data and store in state
-		state["variables"][store_in] = 0  # Dummy value
+		var resolved = null
+		if source != null:
+			resolved = _resolve_value(source, state)
+		else:
+			resolved = _resolve_value(value, state)
+		state["variables"][target] = resolved
 		return {"continue": true, "jump_to": -1}
 
 
-## Creates a WRITE_MEMORY instruction executor.
-func _create_memory_write_executor(params: Dictionary) -> Callable:
-	var cell_index: int = params.get("cell_index", 0)
-	var value_source: String = params.get("value_source", "")  # Variable or literal
+## Creates a MATH_OP instruction executor.
+func _create_math_op_executor(params: Dictionary) -> Callable:
+	var operation: String = str(params.get("operation", "add")).to_lower()
+	var lhs = params.get("lhs", 0)
+	var rhs = params.get("rhs", 0)
+	var store_in: String = params.get("store_in", "")
 	
 	return func(_android, state: Dictionary) -> Dictionary:
-		print("    [Execute] WRITE_MEMORY [%d] <- %s" % [cell_index, value_source])
-		# Get value from variable or use literal
-		var value = state["variables"].get(value_source, 0)
-		if cell_index >= 0 and cell_index < state["memory"].size():
-			state["memory"][cell_index] = value
+		_ensure_state_defaults(state)
+		if store_in.is_empty():
+			push_warning("[AITranslationService] MATH_OP missing 'store_in'")
+			return {"continue": true, "jump_to": -1}
+		var lhs_value = _resolve_numeric(lhs, state)
+		var rhs_value = _resolve_numeric(rhs, state)
+		if lhs_value == null or rhs_value == null:
+			push_warning("[AITranslationService] MATH_OP operands must resolve to numbers")
+			return {"continue": true, "jump_to": -1}
+		var result: float = 0.0
+		match operation:
+			"add":
+				result = lhs_value + rhs_value
+			"subtract":
+				result = lhs_value - rhs_value
+			"multiply":
+				result = lhs_value * rhs_value
+			"divide":
+				if rhs_value == 0:
+					push_warning("[AITranslationService] MATH_OP division by zero")
+					return {"continue": true, "jump_to": -1}
+				result = lhs_value / rhs_value
+			_:
+				push_warning("[AITranslationService] MATH_OP unknown operation '%s'" % operation)
+				return {"continue": true, "jump_to": -1}
+		state["variables"][store_in] = result
 		return {"continue": true, "jump_to": -1}
 
 
-## Creates a READ_MEMORY instruction executor.
-func _create_memory_read_executor(params: Dictionary) -> Callable:
-	var cell_index: int = params.get("cell_index", 0)
-	var store_in: String = params.get("store_in", "temp")
+## Creates a VECTOR_OP instruction executor.
+func _create_vector_op_executor(params: Dictionary) -> Callable:
+	var operation: String = str(params.get("operation", "add")).to_lower()
+	var vector_a = params.get("vector_a", Vector2.ZERO)
+	var vector_b = params.get("vector_b", Vector2.ZERO)
+	var scalar = params.get("scalar", 1.0)
+	var store_in: String = params.get("store_in", "")
 	
 	return func(_android, state: Dictionary) -> Dictionary:
-		print("    [Execute] READ_MEMORY [%d] -> %s" % [cell_index, store_in])
-		if cell_index >= 0 and cell_index < state["memory"].size():
-			state["variables"][store_in] = state["memory"][cell_index]
+		_ensure_state_defaults(state)
+		if store_in.is_empty():
+			push_warning("[AITranslationService] VECTOR_OP missing 'store_in'")
+			return {"continue": true, "jump_to": -1}
+		var a_value: Vector2 = _resolve_vector(vector_a, state)
+		var b_value: Vector2 = _resolve_vector(vector_b, state)
+		var scalar_value: float = _resolve_numeric(scalar, state)
+		if scalar_value == null:
+			scalar_value = 1.0
+		var result: Vector2 = Vector2.ZERO
+		match operation:
+			"add":
+				result = a_value + b_value
+			"subtract":
+				result = a_value - b_value
+			"normalize":
+				result = a_value.normalized()
+			"scale":
+				result = a_value * scalar_value
+			_:
+				push_warning("[AITranslationService] VECTOR_OP unknown operation '%s'" % operation)
+				return {"continue": true, "jump_to": -1}
+		state["variables"][store_in] = result
+		return {"continue": true, "jump_to": -1}
+
+
+## Creates a GET_SENSOR_DATA instruction executor.
+func _create_get_sensor_data_executor(params: Dictionary) -> Callable:
+	var sensor: String = str(params.get("sensor", "")).to_upper()
+	var store_in: String = params.get("store_in", "")
+
+	return func(android, state: Dictionary) -> Dictionary:
+		_ensure_state_defaults(state)
+		if store_in.is_empty():
+			push_warning("[AITranslationService] GET_SENSOR_DATA missing 'store_in'")
+			return {"continue": true, "jump_to": -1}
+		var value = null
+		match sensor:
+			"SELF_POSITION":
+				if android and android.has_method("get"):
+					var maybe_position = android.get("global_position")
+					value = maybe_position if maybe_position is Vector2 else Vector2.ZERO
+				else:
+					value = Vector2.ZERO
+			"SELF_ROTATION":
+				if android and android.has_method("get"):
+					var maybe_rotation = android.get("rotation")
+					value = maybe_rotation if typeof(maybe_rotation) == TYPE_FLOAT else 0.0
+				else:
+					value = 0.0
+			"TARGET_VELOCITY":
+				if android and android.has_method("get"):
+					var maybe_velocity = android.get("target_velocity")
+					value = maybe_velocity if maybe_velocity is Vector2 else Vector2.ZERO
+				else:
+					value = Vector2.ZERO
+			_:
+				value = null
+		state["variables"][store_in] = value
+		return {"continue": true, "jump_to": -1}
+
+
+## Creates a DEBUG_LOG instruction executor.
+func _create_debug_log_executor(params: Dictionary) -> Callable:
+	var message: String = str(params.get("message", ""))
+	var values = params.get("values", [])
+
+	return func(_android, state: Dictionary) -> Dictionary:
+		var resolved: Array = []
+		if values is Array:
+			for entry in values:
+				resolved.append(_resolve_value(entry, state))
+		print("    [Execute] DEBUG_LOG %s %s" % [message, resolved])
+		return {"continue": true, "jump_to": -1}
+
+
+## Creates a LABEL instruction executor.
+func _create_label_executor() -> Callable:
+	return func(_android, _state: Dictionary) -> Dictionary:
+		return {"continue": true, "jump_to": -1}
+
+
+## Creates a JUMP_IF instruction executor.
+func _create_jump_if_executor(params: Dictionary, label_map: Dictionary) -> Callable:
+	var target_label: String = params.get("target_label", "")
+	var else_label: String = params.get("else_label", "")
+	var negate: bool = params.get("negate", false)
+	var condition_data = params.get("condition", null)
+
+	return func(_android, state: Dictionary) -> Dictionary:
+		var condition_met: bool = _evaluate_condition(condition_data, state)
+		if negate:
+			condition_met = not condition_met
+		if condition_met:
+			return {"continue": true, "jump_to": label_map.get(target_label, -1)}
+		if not else_label.is_empty():
+			return {"continue": true, "jump_to": label_map.get(else_label, -1)}
+		return {"continue": true, "jump_to": -1}
+
+
+## Creates a SET_TARGET_VELOCITY instruction executor.
+func _create_set_target_velocity_executor(params: Dictionary) -> Callable:
+	var velocity_raw = params.get("velocity", Vector2.ZERO)
+	var blend_raw = params.get("blend", 1.0)
+
+	return func(android, state: Dictionary) -> Dictionary:
+		_ensure_state_defaults(state)
+		var velocity: Vector2 = _resolve_vector(velocity_raw, state)
+		var blend_value: float = _resolve_numeric(blend_raw, state)
+		if blend_value == null:
+			blend_value = 1.0
+		blend_value = clamp(blend_value, 0.0, 1.0)
+		if android and android.has_method("set"):
+			android.set("target_velocity", velocity)
+			android.set("velocity_blend", blend_value)
+		state["variables"]["target_velocity"] = velocity
+		return {"continue": true, "jump_to": -1}
+
+
+## Creates a SET_ROTATION_TARGET instruction executor.
+func _create_set_rotation_target_executor(params: Dictionary) -> Callable:
+	var rotation_raw = params.get("rotation_deg", 0.0)
+
+	return func(android, state: Dictionary) -> Dictionary:
+		_ensure_state_defaults(state)
+		var rotation_value: float = _resolve_numeric(rotation_raw, state)
+		if rotation_value == null:
+			rotation_value = 0.0
+		if android and android.has_method("set"):
+			android.set("rotation_target_deg", rotation_value)
+		state["variables"]["rotation_target_deg"] = rotation_value
+		return {"continue": true, "jump_to": -1}
+
+
+## Creates a FIRE_WEAPON instruction executor.
+func _create_fire_weapon_executor(_params: Dictionary) -> Callable:
+	return func(android, _state: Dictionary) -> Dictionary:
+		if android and android.has_method("fire_weapon"):
+			android.fire_weapon()
+		else:
+			print("    [Execute] FIRE_WEAPON (no fire_weapon method)")
 		return {"continue": true, "jump_to": -1}
 
 
@@ -250,23 +375,102 @@ func _create_noop_executor() -> Callable:
 		return {"continue": true, "jump_to": -1}
 
 
-## Evaluates a condition for a CONDITION instruction.
-func _evaluate_condition(condition_type: String, android) -> bool:
-	match condition_type:
-		"IS_HEALTH_LOW":
-			return android.get_health_percentage() < 0.25
-		"IS_HEALTH_HIGH":
-			return android.get_health_percentage() > 0.75
-		"IS_ENEMY_NEAR":
-			# Placeholder - would check proximity sensor
-			return false
-		"TRUE":
-			return true
-		"FALSE":
-			return false
-		_:
-			push_warning("[AITranslationService] Unknown condition type: %s" % condition_type)
-			return false
+func _ensure_state_defaults(state: Dictionary) -> void:
+	if not state.has("variables") or typeof(state["variables"]) != TYPE_DICTIONARY:
+		state["variables"] = {}
+	if not state.has("memory") or typeof(state["memory"]) != TYPE_ARRAY:
+		state["memory"] = []
+
+
+func _resolve_value(raw, state: Dictionary):
+	if raw == null:
+		return null
+	if typeof(raw) == TYPE_STRING:
+		if state.has("variables") and state["variables"].has(raw):
+			return state["variables"][raw]
+		if raw.is_valid_float():
+			return raw.to_float()
+		return raw
+	if typeof(raw) == TYPE_DICTIONARY:
+		var dict: Dictionary = raw
+		var variant_type: String = str(dict.get("type", "literal")).to_lower()
+		match variant_type:
+			"variable":
+				return state.get("variables", {}).get(dict.get("name", ""), null)
+			"vector":
+				return Vector2(dict.get("x", 0.0), dict.get("y", 0.0))
+			"literal":
+				return dict.get("value")
+		return dict.get("value", null)
+	return raw
+
+
+func _resolve_numeric(raw, state: Dictionary) -> float:
+	var value = _resolve_value(raw, state)
+	match typeof(value):
+		TYPE_INT, TYPE_FLOAT:
+			return float(value)
+		TYPE_BOOL:
+			return 1.0 if value else 0.0
+		TYPE_STRING:
+			return value.to_float() if value.is_valid_float() else null
+	return null
+
+
+func _resolve_vector(raw, state: Dictionary) -> Vector2:
+	var value = _resolve_value(raw, state)
+	match typeof(value):
+		TYPE_VECTOR2:
+			return value
+		TYPE_ARRAY:
+			if value.size() >= 2:
+				return Vector2(value[0], value[1])
+		TYPE_DICTIONARY:
+			return Vector2(value.get("x", 0.0), value.get("y", 0.0))
+	return Vector2.ZERO
+
+
+func _evaluate_condition(condition_data, state: Dictionary) -> bool:
+	if condition_data == null:
+		return false
+	if typeof(condition_data) == TYPE_BOOL:
+		return condition_data
+	if typeof(condition_data) != TYPE_DICTIONARY:
+		return bool(_resolve_value(condition_data, state))
+	if condition_data.is_empty():
+		return false
+
+	var comparator: String = str(condition_data.get("operator", "==")).to_lower()
+	var lhs_raw = condition_data.get("lhs")
+	var rhs_raw = condition_data.get("rhs")
+
+	match comparator:
+		"==", "equals":
+			return _resolve_value(lhs_raw, state) == _resolve_value(rhs_raw, state)
+		"!=", "not_equals":
+			return _resolve_value(lhs_raw, state) != _resolve_value(rhs_raw, state)
+		">", "greater_than":
+			return _compare_numeric(lhs_raw, rhs_raw, state, func(a, b): return a > b)
+		"<", "less_than":
+			return _compare_numeric(lhs_raw, rhs_raw, state, func(a, b): return a < b)
+		">=", "greater_or_equal":
+			return _compare_numeric(lhs_raw, rhs_raw, state, func(a, b): return a >= b)
+		"<=", "less_or_equal":
+			return _compare_numeric(lhs_raw, rhs_raw, state, func(a, b): return a <= b)
+		"is_true":
+			return bool(_resolve_value(lhs_raw, state))
+		"is_false":
+			return not bool(_resolve_value(lhs_raw, state))
+	return false
+
+
+func _compare_numeric(lhs_raw, rhs_raw, state: Dictionary, comparator: Callable) -> bool:
+	var lhs_value = _resolve_numeric(lhs_raw, state)
+	var rhs_value = _resolve_numeric(rhs_raw, state)
+	if lhs_value == null or rhs_value == null:
+		push_warning("[AITranslationService] Numeric comparison received non-numeric values")
+		return false
+	return comparator.call(lhs_value, rhs_value)
 
 
 ## Creates an error result dictionary.
